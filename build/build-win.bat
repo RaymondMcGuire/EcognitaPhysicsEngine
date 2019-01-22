@@ -1,0 +1,1 @@
+tsc -out ../scripts/main.js ../tscripts/test.ts
