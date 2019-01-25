@@ -775,3 +775,4 @@ var EPSE;
 /// <reference path="./EEntities/EPhysSphere.ts" />
 var sphere = new EPSE.EPhysSphere();
 console.log(sphere);
+console.log("engine test!");

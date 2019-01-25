@@ -3,3 +3,4 @@
 
 let sphere = new EPSE.EPhysSphere();
 console.log(sphere);
+console.log("engine test!");
