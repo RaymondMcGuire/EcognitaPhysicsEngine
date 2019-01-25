@@ -5,7 +5,7 @@
  *
  * ========================================================================= */
 /// <reference path="./Component.ts" />
-/// <reference path="../utils/HashSet.ts" />
+/// <reference path="../EUtils/HashSet.ts" />
 module ECS {
     export class Entity {
         name: string;

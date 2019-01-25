@@ -5,7 +5,7 @@
  * 
  * ========================================================================= */
 /// <reference path="../ECS/Component.ts" />
-/// <reference path="../EPhysCommon.ts" />
+/// <reference path="../EUtils/EPhysCommon.ts" />
 module EPSE {
     declare var THREE: any;
 

@@ -4,6 +4,7 @@
  *  game execute logical
  *
  * ========================================================================= */
+/// <reference path="./Entity.ts" />
 module ECS {
     export class System {
         name: string;

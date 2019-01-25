@@ -71,7 +71,7 @@ var Utils;
  *
  * ========================================================================= */
 /// <reference path="./Component.ts" />
-/// <reference path="../utils/HashSet.ts" />
+/// <reference path="../EUtils/HashSet.ts" />
 var ECS;
 (function (ECS) {
     var Entity = /** @class */ (function () {
@@ -381,7 +381,7 @@ var EPSE;
  *
  * ========================================================================= */
 /// <reference path="../ECS/Component.ts" />
-/// <reference path="../EPhysCommon.ts" />
+/// <reference path="../EUtils/EPhysCommon.ts" />
 var EPSE;
 (function (EPSE) {
     var EPhysComponent = /** @class */ (function (_super) {
