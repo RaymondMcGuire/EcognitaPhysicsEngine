@@ -4,7 +4,7 @@ rename = require('gulp-rename'),
     uglify = require("gulp-uglify");
 
 // Static Server + watching scss/html files
-gulp.task('serve', () => {
+gulp.task('server', () => {
 
     browserSync.init({
         port: 3000,
