@@ -22,6 +22,6 @@ gulp.task('minify', done => {
     gulp.src('./scripts/main.js')
         .pipe(uglify())
         .pipe(rename('epse.min.js'))
-        .pipe(gulp.dest('./build/dist/js'));
+        .pipe(gulp.dest('./release/dist/js'));
     done();
 });
