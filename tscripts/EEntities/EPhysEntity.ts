@@ -106,7 +106,6 @@ module EPSE {
 
 
         create() {
-
             //３次元グラフィックスの生成
             this.create3DCG();
             

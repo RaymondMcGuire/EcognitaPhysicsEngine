@@ -6,8 +6,6 @@
  * ========================================================================= */
 /// <reference path="./EPhysEntity.ts" />
 module EPSE {
-    declare var THREE: any;
-
     export class EPhysSphere extends EPhysEntity {
 
         radius:number;

@@ -1,4 +1,4 @@
-TITLE Start「EPSE」Environment Config
+TITLE EPSE Environment Config Begin
 
 @echo off
 echo Build EPSE System

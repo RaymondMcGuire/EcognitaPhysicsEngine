@@ -1,8 +1,9 @@
-/// <reference path="./EEntities/EPhysSphere.ts" />
+/// <reference path="./EEntities/EPhysFloor.ts" />
 /// <reference path="./ESystems/ESystems.ts" />
 
-let sphere = new EPSE.EPhysSphere();
-console.log(sphere);
+let floor = new EPSE.EPhysFloor();
+console.log(floor);
 
 let phys_system = new EPSE.EPhysCore();
+phys_system.objects.push(floor);
 phys_system.Execute();

@@ -5,14 +5,14 @@
  *
  * ========================================================================= */
 /// <reference path="../ECS/System.ts" />
+/// <reference path="../EUtils/EPhysCommon.ts" />
 module EPSE {
     declare var THREE: any;
 
     export class E3DSystem extends ECS.System {
 
-        CG: any;
+        draggableObjects:any;
 
-        frameID: any;
         renderer: any;
         camera: any;
         light: any;
@@ -21,11 +21,10 @@ module EPSE {
 
         constructor() {
             super("three_system");
-            this.frameID = "Cvs_EPSE";
-            this.CG = {};
+            this.draggableObjects = [];
 
             this.renderer = {
-                clearColor: 0xFFFFFF, //クリアーカラー（背景色）
+                clearColor: 0xE1FCFF, //クリアーカラー（背景色）
                 clearAlpha: 1.0,      //クリアーアルファ値（背景色）
                 parameters: {         //WebGLRendererクラスのコンストラクタに渡すパラメータ 
                     antialias: true,   //アンチエイリアス（デフォルト：false）
@@ -36,9 +35,9 @@ module EPSE {
             //カメラパラメータ
             this.camera = {
                 type: "Perspective",          //カメラの種類（ "Perspective" | "Orthographic"）
-                position: { x: 15, y: 0, z: 15 }, //カメラの位置座標
+                position: { x: 20, y: 0, z: 10 }, //カメラの位置座標
                 up: { x: 0, y: 0, z: 1 },   //カメラの上ベクトル
-                target: { x: 0, y: 0, z: 0 },   //カメラの向き中心座標
+                target: { x: 0, y: 0, z: 2 },   //カメラの向き中心座標
                 fov: 45,                  //視野角
                 near: 0.1,                 //視体積手前までの距離
                 far: 500,                 //視体積の奥までの距離
@@ -51,7 +50,7 @@ module EPSE {
             //光源パラメータ
             this.light = {
                 type: "Directional",         //光源の種類（ "Directional" | "Spot" | "Point"）
-                position: { x: 0, y: 0, z: 10 }, //光源位置
+                position: { x: 0, y: 0, z: 15 }, //光源位置
                 target: { x: 0, y: 0, z: 0 },     //光源の向き（平行光源, スポットライト光源）
                 color: 0xFFFFFF,              //光源色
                 intensity: 1,                 //光源強度
@@ -91,33 +90,33 @@ module EPSE {
 
         initThree() {
             //キャンバスフレームDOM要素の取得
-            this.CG.canvasFrame = document.getElementById(this.frameID);
+            CG.canvasFrame = document.getElementById(frameID);
 
             //レンダラーオブジェクトの生成
-            this.CG.renderer = new THREE.WebGLRenderer(this.renderer.parameters);
+            CG.renderer = new THREE.WebGLRenderer(this.renderer.parameters);
 
-            if (!this.CG.renderer) alert('Three.js の初期化に失敗しました');
+            if (!CG.renderer) alert('Three.js の初期化に失敗しました');
 
             //レンダラーのサイズの設定
-            this.CG.renderer.setSize(
-                this.CG.canvasFrame.clientWidth,
-                this.CG.canvasFrame.clientHeight
+            CG.renderer.setSize(
+                CG.canvasFrame.clientWidth,
+                CG.canvasFrame.clientHeight
             );
 
             //キャンバスフレームDOM要素にcanvas要素を追加
-            this.CG.canvasFrame.appendChild(this.CG.renderer.domElement);
+            CG.canvasFrame.appendChild(CG.renderer.domElement);
 
             //レンダラークリアーカラーの設定
-            this.CG.renderer.setClearColor(
+            CG.renderer.setClearColor(
                 this.renderer.clearColor,
                 this.renderer.clearAlpha
             );
 
             //シャドーマップの利用
-            this.CG.renderer.shadowMap.enabled = this.shadow.shadowMapEnabled;
+            CG.renderer.shadowMap.enabled = this.shadow.shadowMapEnabled;
 
             //シーンオブジェクトの生成
-            this.CG.scene = new THREE.Scene();
+            CG.scene = new THREE.Scene();
         }
 
         initCamera() {
@@ -125,9 +124,9 @@ module EPSE {
             if (this.camera.type == "Perspective") {
 
                 //透視投影カメラオブジェクトの生成
-                this.CG.camera = new THREE.PerspectiveCamera(
+                CG.camera = new THREE.PerspectiveCamera(
                     this.camera.fov,  //視野角
-                    this.CG.canvasFrame.clientWidth / this.CG.canvasFrame.clientHeight, //アスペクト
+                    CG.canvasFrame.clientWidth / CG.canvasFrame.clientHeight, //アスペクト
                     this.camera.near, //視体積手前までの距離
                     this.camera.far   //視体積の奥までの距離
                 );
@@ -136,7 +135,7 @@ module EPSE {
             } else if (this.camera.type == "Orthographic") {
 
                 //正投影カメラオブジェクトの生成
-                this.CG.camera = new THREE.OrthographicCamera(
+                CG.camera = new THREE.OrthographicCamera(
                     this.camera.left,   //視体積の左までの距離
                     this.camera.right,  //視体積の右までの距離
                     this.camera.top,    //視体積の上までの距離
@@ -152,60 +151,60 @@ module EPSE {
             }
 
             //カメラの位置の設定
-            this.CG.camera.position.set(
+            CG.camera.position.set(
                 this.camera.position.x,
                 this.camera.position.y,
                 this.camera.position.z
             );
             //カメラの上ベクトルの設定
-            this.CG.camera.up.set(
+            CG.camera.up.set(
                 this.camera.up.x,
                 this.camera.up.y,
                 this.camera.up.z
             );
             //カメラの中心位置ベクトルの設定（トラックボール利用時は自動的に無効）
-            this.CG.camera.lookAt({
+            CG.camera.lookAt({
                 x: this.camera.target.x,
                 y: this.camera.target.y,
                 z: this.camera.target.z
             });
 
             //トラックボールオブジェクトの宣言
-            this.CG.trackball = new THREE.TrackballControls(
-                this.CG.camera,
-                this.CG.canvasFrame
+            CG.trackball = new THREE.TrackballControls(
+                CG.camera,
+                CG.canvasFrame
             );
 
             //トラックボール動作範囲のサイズとオフセットの設定
-            this.CG.trackball.screen.width = this.CG.canvasFrame.clientWidth;                        //横幅
-            this.CG.trackball.screen.height = this.CG.canvasFrame.clientHeight;                      //縦幅
-            this.CG.trackball.screen.offsetLeft = this.CG.canvasFrame.getBoundingClientRect().left;  //左オフセット
-            this.CG.trackball.screen.offsetTop = this.CG.canvasFrame.getBoundingClientRect().top;    //上オフセット
+            CG.trackball.screen.width = CG.canvasFrame.clientWidth;                        //横幅
+            CG.trackball.screen.height = CG.canvasFrame.clientHeight;                      //縦幅
+            CG.trackball.screen.offsetLeft = CG.canvasFrame.getBoundingClientRect().left;  //左オフセット
+            CG.trackball.screen.offsetTop = CG.canvasFrame.getBoundingClientRect().top;    //上オフセット
 
             //トラックボールの回転無効化と回転速度の設定
-            this.CG.trackball.noRotate = this.trackball.noRotate;
-            this.CG.trackball.rotateSpeed = this.trackball.rotateSpeed;
+            CG.trackball.noRotate = this.trackball.noRotate;
+            CG.trackball.rotateSpeed = this.trackball.rotateSpeed;
 
             //トラックボールの拡大無効化と拡大速度の設定
-            this.CG.trackball.noZoom = this.trackball.noZoom;
-            this.CG.trackball.zoomSpeed = this.trackball.zoomSpeed;
+            CG.trackball.noZoom = this.trackball.noZoom;
+            CG.trackball.zoomSpeed = this.trackball.zoomSpeed;
 
             //トラックボールのカメラ中心移動の無効化と中心速度の設定
-            this.CG.trackball.noPan = this.trackball.noPan;
-            this.CG.trackball.panSpeed = this.trackball.panSpeed;
-            this.CG.trackball.target = new THREE.Vector3(
+            CG.trackball.noPan = this.trackball.noPan;
+            CG.trackball.panSpeed = this.trackball.panSpeed;
+            CG.trackball.target = new THREE.Vector3(
                 this.camera.target.x,
                 this.camera.target.y,
                 this.camera.target.z
             );
 
             //トラックボールのスタティックムーブの有効化
-            this.CG.trackball.staticMoving = this.trackball.staticMoving;
+            CG.trackball.staticMoving = this.trackball.staticMoving;
             //トラックボールのダイナミックムーブ時の減衰定数
-            this.CG.trackball.dynamicDampingFactor = this.trackball.dynamicDampingFactor;
+            CG.trackball.dynamicDampingFactor = this.trackball.dynamicDampingFactor;
 
             //トラックボール利用の有無
-            this.CG.trackball.enabled = this.trackball.enabled;
+            CG.trackball.enabled = this.trackball.enabled;
         }
 
         initLight() {
@@ -250,7 +249,7 @@ module EPSE {
             if (this.light.type == "Directional") {
 
                 //平行光源オブジェクトの生成
-                this.CG.light = new THREE.DirectionalLight(
+                CG.light = new THREE.DirectionalLight(
                     this.light.color,     //光源色
                     this.light.intensity  //光源強度
                 );
@@ -258,14 +257,14 @@ module EPSE {
                 //シャドーマッピングを行う場合
                 if (this.shadow.shadowMapEnabled) {
 
-                    setShadowCamera(this.CG.light, this.shadow);
+                    setShadowCamera(CG.light, this.shadow);
 
                 }
 
             } else if (this.light.type == "Spot") {
 
                 //スポットライトオブジェクトの生成
-                this.CG.light = new THREE.SpotLight(
+                CG.light = new THREE.SpotLight(
                     this.light.color,     //光源色
                     this.light.intensity, //光源強度
                     this.light.distance,  //距離減衰指数
@@ -276,13 +275,13 @@ module EPSE {
                 //シャドーマッピングを行う場合
                 if (this.shadow.shadowMapEnabled) {
 
-                    setShadowCamera(this.CG.light, this.shadow);
+                    setShadowCamera(CG.light, this.shadow);
 
                 }
 
             } else if (this.light.type == "Point") {
                 //点光源オブジェクトの生成
-                this.CG.light = new THREE.PointLight(
+                CG.light = new THREE.PointLight(
                     this.light.color,     //光源色
                     this.light.intensity, //光源強度
                     this.light.distance   //距離減衰指数
@@ -291,19 +290,19 @@ module EPSE {
                 //シャドーマッピングを行う場合
                 if (this.shadow.shadowMapEnabled) {
                     //シャドーカメラ用スポットライトオブジェクトの生成
-                    this.CG.light.shadowCamera = new THREE.SpotLight();
+                    CG.light.shadowCamera = new THREE.SpotLight();
                     //シャドーカメラ用の位置
-                    this.CG.light.shadowCamera.position.set(
+                    CG.light.shadowCamera.position.set(
                         this.light.position.x,
                         this.light.position.y,
                         this.light.position.z
                     );
                     //スポットライト光源オブジェクトをシャドーマップ作成用のみに利用する
-                    this.CG.light.shadowCamera.onlyShadow = true;
+                    CG.light.shadowCamera.onlyShadow = true;
 
                     //シャドーカメラをシーンへ追加
-                    this.CG.scene.add(this.CG.light.shadowCamera);
-                    setShadowCamera(this.CG.light.shadowCamera, this.shadow);
+                    CG.scene.add(CG.light.shadowCamera);
+                    setShadowCamera(CG.light.shadowCamera, this.shadow);
                 }
 
             } else {
@@ -313,38 +312,241 @@ module EPSE {
             }
 
             //光源オブジェクトの位置の設定
-            this.CG.light.position.set(
+            CG.light.position.set(
                 this.light.position.x,
                 this.light.position.y,
                 this.light.position.z
             );
             //光源ターゲット用オブジェクトの生成
-            this.CG.light.target = new THREE.Object3D();
-            this.CG.light.target.position.set(
+            CG.light.target = new THREE.Object3D();
+            CG.light.target.position.set(
                 this.light.target.x,
                 this.light.target.y,
                 this.light.target.z
             );
             //光源オブジェクトのシーンへの追加
-            this.CG.scene.add(this.CG.light);
+            CG.scene.add(CG.light);
 
 
             if (this.light.ambient) {
                 //環境光オブジェクトの生成
-                this.CG.ambientLight = new THREE.AmbientLight(this.light.ambient);
+                CG.ambientLight = new THREE.AmbientLight(this.light.ambient);
 
                 //環境光オブジェクトのシーンへの追加
-                this.CG.scene.add(this.CG.ambientLight);
+                CG.scene.add(CG.ambientLight);
             }
         }
 
         initDragg() {
+            //仮想物理実験室全体でのマウスドラック無しの場合
+            if (!draggable) return;
 
+            ///////////////光線受信用平面オブジェクトの定義//////////////////
+            //形状オブジェクトの宣言と生成
+            var geometry = new THREE.PlaneGeometry(200, 200, 8, 8);
+            //材質オブジェクトの宣言と生成
+            var material = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+            //平面オブジェクトの生成
+            var plane = new THREE.Mesh(geometry, material);
+            //平面オブジェクトの可視化
+            plane.visible = false;
+            //平面オブジェクトのシーンへの追加
+            CG.scene.add(plane);
+
+            CG.canvasFrame.addEventListener('mousemove', onDocumentMouseMove, false);
+            CG.canvasFrame.addEventListener('mousedown', onDocumentMouseDown, false);
+            CG.canvasFrame.addEventListener('mouseup', onDocumentMouseUp, false);
+
+            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
+            var offset = new THREE.Vector3();
+            var INTERSECTED;  //マウスポインタが指しているオブジェクト 
+            var SELECTED;     //マウスドラック中のオブジェクト
+
+            //HTML要素の位置による補正量の取得
+            var elementOffsetLeft, elementOffsetTop;
+
+            function onDocumentMouseMove(event) {
+
+                //マウスドラックフラグを解除
+                for (var i = 0; i < this.draggableObjects.length; i++) {
+                   this.draggableObjects[i].physObject.boundingBox.draggFlag = false;
+                }
+
+                //マウスドラックが許可されていない場合は処理を終了
+                if (!allowDrag) return;
+
+                elementOffsetLeft =CG.canvasFrame.getBoundingClientRect().left;
+                elementOffsetTop =CG.canvasFrame.getBoundingClientRect().top;
+
+                //マウスポインタの位置座標の取得
+                var mx = ((event.clientX - elementOffsetLeft) /CG.canvasFrame.clientWidth) * 2 - 1;
+                var my = -((event.clientY - elementOffsetTop) /CG.canvasFrame.clientHeight) * 2 + 1;
+                var vector = new THREE.Vector3(mx, my, 0.5);
+                //プロジェクターオブジェクトの生成
+                var projector = new THREE.Projector();
+                //逆投影変換を行うことで仮想空間内のベクトルへと変換する
+                vector = projector.unprojectVector(vector,CG.camera);
+                //カメラ位置座標を起点として規格化を行う
+                vector = vector.sub(CG.camera.position).normalize();
+                //カメラ位置座標から光線を発射
+                var raycaster = new THREE.Raycaster(CG.camera.position, vector);
+
+                //オブジェクトがマウスドラックされている時
+                if (SELECTED) {
+
+                    //光線と交わる平面オブジェクトオブジェクトを収集
+                    var intersects = raycaster.intersectObject(plane);
+                    //マウスドラック時のマウスポインタの指している平面オブジェクトの３次元空間中の位置座標
+                    var vec3 = intersects[0].point;
+
+                    //マウスドラックされているオブジェクトのバウンディングボックスを移動
+                    SELECTED.physObject.boundingBox.CG.position.copy(
+                        vec3.sub(offset)
+                    );
+
+                    //マウスドラックされているオブジェクトを移動
+                    SELECTED.physObject.r.copy(
+                        SELECTED.physObject.boundingBox.CG.position
+                    ).sub(SELECTED.physObject.boundingBox.center);
+
+                    //マウスドラックフラグの設定
+                    SELECTED.physObject.boundingBox.draggFlag = true;
+
+                    //マウスドラックイベントの実行
+                   this.mouseDraggEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+
+                    return;
+                }
+                //光線と交わるオブジェクトを収集
+                var intersects = raycaster.intersectObjects(this.draggableObjects);
+
+                //マウスポインタがオブジェクト上にある場合
+                if (intersects.length > 0) {
+
+                    if (INTERSECTED != intersects[0].object) {
+
+                        //マウスドラックが許可されていない場合は処理を終了
+                        if (!intersects[0].object.physObject.allowDrag) return;
+
+                        //マウスポインタが指しているオブジェクトが登録されていなければ、一番手前のオブジェクトを「INTERSECTED」に登録
+                        INTERSECTED = intersects[0].object;
+
+                        //平面オブジェクトの位置座標を「INTERSECTED」に登録されたオブジェクトと同じ位置座標とする
+                        plane.position.copy(INTERSECTED.position);
+
+                        //平面オブジェクトの上ベクトルをカメラの位置座標の方向へ向ける
+                        plane.lookAt(CG.camera.position);
+
+                    }
+                    //バウンディングボックスの可視化
+                    INTERSECTED.physObject.boundingBox.draggFlag = true;
+
+                    //マウスポインタのカーソルを変更
+                   CG.canvasFrame.style.cursor = 'pointer';
+
+                } else {
+
+                    //マウスポインタがオブジェクトから離れている場合
+                    INTERSECTED = null;
+
+                    //マウスポインタのカーソルを変更
+                   CG.canvasFrame.style.cursor = 'auto';
+
+                }
+            }
+            //マウスダウンイベント	
+            function onDocumentMouseDown(event) {
+                //マウスドラックが許可されていない場合は処理を終了
+                if (!this.allowDrag) return;
+
+                //マウスポインタの位置座標の取得
+                var mx = ((event.clientX - elementOffsetLeft) /CG.canvasFrame.clientWidth) * 2 - 1;
+                var my = -((event.clientY - elementOffsetTop) /CG.canvasFrame.clientHeight) * 2 + 1;
+                var vector = new THREE.Vector3(mx, my, 0.5);
+
+                //プロジェクターオブジェクトの生成
+                var projector = new THREE.Projector();
+                //逆投影変換を行うことで仮想空間内のベクトルへと変換する
+                vector = projector.unprojectVector(vector,CG.camera);
+                //カメラ位置座標を起点として規格化を行う
+                vector = vector.sub(CG.camera.position).normalize();
+                //カメラ位置座標から光線を発射
+                var raycaster = new THREE.Raycaster(CG.camera.position, vector);
+                //光線と交わるオブジェクトを収集
+                var intersects = raycaster.intersectObjects(this.draggableObjects);
+                //交わるオブジェクトが１個以上の場合
+                if (intersects.length > 0) {
+
+                    //マウスドラックが許可されていない場合は処理を終了
+                    if (!intersects[0].object.physObject.allowDrag) return;
+
+                    //トラックボールを無効化
+                   CG.trackball.enabled = false;
+                    //クリックされたオブジェクトを「SELECTED」に登録
+                    SELECTED = intersects[0].object;
+
+                    //マウスダウンイベントの実行
+                   this.mouseDownEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+
+                    //光線と交わる平面オブジェクトオブジェクトを収集
+                    var intersects = raycaster.intersectObject(plane);
+                    //クリック時のマウスポインタの指した平面オブジェクトの３次元空間中の位置座標
+                    var vec3 = intersects[0].point;
+                    //平面オブジェクトの中心から見た相対的な位置座標
+                    offset.copy(vec3).sub(plane.position);
+                    //マウスポインタのカーソルを変更
+                   CG.canvasFrame.style.cursor = 'move';
+                }
+            }
+            //マウスアップイベント	
+            function onDocumentMouseUp(event) {
+
+                //トラックボールを有効化
+               CG.trackball.enabled =this.trackball.enabled;
+
+                //マウスポインタのカーソルを変更
+               CG.canvasFrame.style.cursor = 'auto';
+
+                //マウスドラックが許可されていない場合は処理を終了
+                if (!this.allowDrag) return;
+
+                //マウスアップ時にマウスポインタがオブジェクト上にある場合
+                if (INTERSECTED && SELECTED) {
+
+                    //平面オブジェクトの位置座標をオブジェクトの位置座標に合わせる
+                    plane.position.copy(INTERSECTED.position);
+
+                    //内部パラメータのリセット
+                    if (SELECTED.physObject.dynamic) SELECTED.physObject.resetParameter();
+
+                    //マウスアップイベントの実行
+                   this.mouseUpEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+
+                    //画面キャプチャの生成フラグ
+                   this.makePictureFlag = true;
+
+                    //マウスドラックの解除
+                    SELECTED = null;
+
+                }
+
+            }
+        }
+
+        mouseDownEvent( physObject ) {
+
+        }
+        //３次元オブジェクトがマウスドラックされた時に実行
+        mouseDraggEvent( physObject ) {
+        
+        }
+        //３次元オブジェクトがマウスアップされた時に実行
+        mouseUpEvent( physObject ) {
+        
         }
 
         Execute() {
             super.Execute();
-
             this.initThree();
             this.initCamera();
             this.initLight();
