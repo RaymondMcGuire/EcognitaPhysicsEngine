@@ -14,12 +14,12 @@ module EPSE {
         private _R:number;
         private _N:number;
         private _data:Array<[number,number]>;
-        constructor(R: number = 1.0, omega:number = 2.0*Math.PI/10, T_MAX:number=10) {
+        constructor(R: number = 1.0, omega:number = 2.0*Math.PI/10, T_MAX:number=10, DeltaT:number=1.0) {
             this._omega = omega;
             this._R = R;
 
             this._v0 = this._R * this._omega;
-            this._deltaT = 1.0;
+            this._deltaT = DeltaT;
             this._N = T_MAX / this._deltaT;
 
             this._data = [];

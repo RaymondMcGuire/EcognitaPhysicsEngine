@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 /* =========================================================================
  *
  *  math_utils.ts
@@ -46,6 +59,9 @@ var EMathLib;
                 }
             }
         }
+        Vector.prototype.clone = function () {
+            return new Vector(this._dimension, this._elements);
+        };
         Vector.prototype.set = function (params) {
             if (params.size() != this.size()) {
                 console.log("dimension is not correct!");
@@ -267,14 +283,15 @@ var EMathLib;
 var EPSE;
 (function (EPSE) {
     var Euler_method = /** @class */ (function () {
-        function Euler_method(R, omega, T_MAX) {
+        function Euler_method(R, omega, T_MAX, DeltaT) {
             if (R === void 0) { R = 1.0; }
             if (omega === void 0) { omega = 2.0 * Math.PI / 10; }
             if (T_MAX === void 0) { T_MAX = 10; }
+            if (DeltaT === void 0) { DeltaT = 1.0; }
             this._omega = omega;
             this._R = R;
             this._v0 = this._R * this._omega;
-            this._deltaT = 1.0;
+            this._deltaT = DeltaT;
             this._N = T_MAX / this._deltaT;
             this._data = [];
         }
@@ -300,8 +317,175 @@ var EPSE;
     }());
     EPSE.Euler_method = Euler_method;
 })(EPSE || (EPSE = {}));
+/* =========================================================================
+ *
+ *  Runge_Kutta_method.ts
+ *
+ *
+ * ========================================================================= */
+/// <reference path="../extlib/EMathLib/vector.ts" />
+var EPSE;
+(function (EPSE) {
+    var Runge_Kutta_method = /** @class */ (function () {
+        function Runge_Kutta_method(deltaT) {
+            this._deltaT = deltaT;
+        }
+        Runge_Kutta_method.prototype.V = function (r, t, v) {
+            return v.clone();
+        };
+        Runge_Kutta_method.prototype.A = function (r, t, v) {
+            return new EMathLib.Vector(3);
+        };
+        Runge_Kutta_method.prototype.RK4 = function (r, t, v) {
+            this._r = r;
+            this._t = t;
+            this._v = v;
+            var v1 = this.V(this._r, this._t, this._v);
+            var a1 = this.A(this._r, this._t, this._v);
+            var _v1 = new EMathLib.Vector(3, [this._r.at(0) + v1.at(0) * this._deltaT / 2, this._r.at(1) + v1.at(1) * this._deltaT / 2, this._r.at(2) + v1.at(2) * this._deltaT / 2]);
+            var _a1 = new EMathLib.Vector(3, [this._v.at(0) + a1.at(0) * this._deltaT / 2, this._v.at(1) + a1.at(1) * this._deltaT / 2, this._v.at(2) + a1.at(2) * this._deltaT / 2]);
+            var v2 = this.V(_v1, this._t + this._deltaT / 2, _a1);
+            var a2 = this.A(_v1, this._t + this._deltaT / 2, _a1);
+            var _v2 = new EMathLib.Vector(3, [this._r.at(0) + v2.at(0) * this._deltaT / 2, this._r.at(1) + v2.at(1) * this._deltaT / 2, this._r.at(2) + v2.at(2) * this._deltaT / 2]);
+            var _a2 = new EMathLib.Vector(3, [this._v.at(0) + a2.at(0) * this._deltaT / 2, this._v.at(1) + a2.at(1) * this._deltaT / 2, this._v.at(2) + a2.at(2) * this._deltaT / 2]);
+            var v3 = this.V(_v2, this._t + this._deltaT / 2, _a2);
+            var a3 = this.A(_v2, this._t + this._deltaT / 2, _a2);
+            var _v3 = new EMathLib.Vector(3, [this._r.at(0) + v3.at(0) * this._deltaT, this._r.at(1) + v3.at(1) * this._deltaT, this._r.at(2) + v3.at(2) * this._deltaT]);
+            var _a3 = new EMathLib.Vector(3, [this._v.at(0) + a3.at(0) * this._deltaT, this._v.at(1) + a3.at(1) * this._deltaT, this._v.at(2) + a3.at(2) * this._deltaT]);
+            var v4 = this.V(_v3, this._t + this._deltaT, _a3);
+            var a4 = this.A(_v3, this._t + this._deltaT, _a3);
+            var out_r = new EMathLib.Vector(3, [
+                this._deltaT / 6 * (v1.at(0) + 2 * v2.at(0) + 2 * v3.at(0) + v4.at(0)),
+                this._deltaT / 6 * (v1.at(1) + 2 * v2.at(1) + 2 * v3.at(1) + v4.at(1)),
+                this._deltaT / 6 * (v1.at(2) + 2 * v2.at(2) + 2 * v3.at(2) + v4.at(2))
+            ]);
+            var out_v = new EMathLib.Vector(3, [
+                this._deltaT / 6 * (a1.at(0) + 2 * a2.at(0) + 2 * a3.at(0) + a4.at(0)),
+                this._deltaT / 6 * (a1.at(1) + 2 * a2.at(1) + 2 * a3.at(1) + a4.at(1)),
+                this._deltaT / 6 * (a1.at(2) + 2 * a2.at(2) + 2 * a3.at(2) + a4.at(2))
+            ]);
+            return { r: out_r, v: out_v };
+        };
+        return Runge_Kutta_method;
+    }());
+    EPSE.Runge_Kutta_method = Runge_Kutta_method;
+})(EPSE || (EPSE = {}));
+/* =========================================================================
+ *
+ *  RK4_UniformCircularMotion.ts
+ *
+ *
+ * ========================================================================= */
+/// <reference path="../extlib/EMathLib/vector.ts" />
+/// <reference path="../lib/Runge_Kutta_method.ts" />
+var EPSE;
+(function (EPSE) {
+    var RK4_UniformCircularMotion = /** @class */ (function (_super) {
+        __extends(RK4_UniformCircularMotion, _super);
+        function RK4_UniformCircularMotion(R, omega, T_MAX, deltaT) {
+            if (R === void 0) { R = 1.0; }
+            if (omega === void 0) { omega = 2.0 * Math.PI / 10; }
+            if (T_MAX === void 0) { T_MAX = 10; }
+            if (deltaT === void 0) { deltaT = 1.0; }
+            var _this = _super.call(this, deltaT) || this;
+            _this._omega = omega;
+            _this._R = R;
+            _this._v0 = _this._R * _this._omega;
+            _this._N = T_MAX / _this._deltaT;
+            _this._data = [];
+            return _this;
+        }
+        RK4_UniformCircularMotion.prototype.A = function (r, t, v) {
+            //console.log("debug child A...");
+            var out = r.mul(-this._omega * this._omega);
+            return out;
+        };
+        RK4_UniformCircularMotion.prototype.Calculate = function () {
+            var r = new EMathLib.Vector(3, [this._R, 0, 0]);
+            var v = new EMathLib.Vector(3, [0, this._v0, 0]);
+            this._data.push([0, r.at(0)]);
+            for (var index = 1; index < this._N; index++) {
+                var t = this._deltaT * index;
+                var result = this.RK4(r, t, v);
+                r = r.add(result.r);
+                v = v.add(result.v);
+                this._data.push([t, r.at(0)]);
+            }
+        };
+        RK4_UniformCircularMotion.prototype.data = function () { return this._data; };
+        return RK4_UniformCircularMotion;
+    }(EPSE.Runge_Kutta_method));
+    EPSE.RK4_UniformCircularMotion = RK4_UniformCircularMotion;
+})(EPSE || (EPSE = {}));
 /// <reference path="./lib/Euler_method.ts" />
-var em = new EPSE.Euler_method();
-em.Calculate();
-var result = em.data();
-console.log(result);
+/// <reference path="./demo/RK4_UniformCircularMotion.ts" />
+window.addEventListener("load", function () {
+    //「Plot2D」クラスのインスタンスを生成
+    var plot2D = new Plot2D("canvas-frame_graph");
+    plot2D.options.axesDefaults.pad = 1;
+    plot2D.options.axesDefaults.labelOptions.fontSize = "25pt";
+    plot2D.options.axesDefaults.tickOptions.fontSize = "20pt";
+    plot2D.options.axes.xaxis.label = '時刻 [t]';
+    plot2D.options.axes.yaxis.label = 'x座標 [m]';
+    plot2D.options.axes.yaxis.labelOptions = { angle: -90 }; //ラベル回転角
+    //	plot2D.options.axes.yaxis.tickOptions = { formatString : '%.1e'}
+    plot2D.options.seriesDefaults.lineWidth = 6.0;
+    plot2D.options.seriesDefaults.markerOptions.show = true;
+    plot2D.options.legend.show = true; //凡例の有無
+    plot2D.options.legend.location = 'se'; //凡例の位置
+    plot2D.options.axes.xaxis.min = 0;
+    plot2D.options.axes.xaxis.max = 10;
+    plot2D.options.axes.xaxis.tickInterval = 1;
+    plot2D.options.axes.yaxis.min = -1.2;
+    plot2D.options.axes.yaxis.max = 1.2;
+    plot2D.options.axes.yaxis.tickInterval = 0.2;
+    var series = []; //データ列オプション用配列
+    series.push({
+        showLine: true,
+        label: "解析解",
+        markerOptions: {
+            show: false
+        } //点描画の有無
+    });
+    var M = 200;
+    var R = 1;
+    var omega = 2.0 * Math.PI / 10;
+    var t_min = 0;
+    var t_max = 10;
+    var DeltaTs = [1, 0.5, 0.1];
+    //解析解
+    var data_exact = [];
+    for (var j = 0; j <= M; j++) {
+        var t = t_min + (t_max - t_min) / M * j;
+        var x = R * Math.cos(omega * t);
+        data_exact.push([t, x]);
+    }
+    plot2D.pushData(data_exact);
+    //Euler Method
+    // let em = new EPSE.Euler_method(R, omega, t_max, dt);
+    // em.Calculate();
+    // let result = em.data();
+    for (var m = 0; m < DeltaTs.length; m++) {
+        var dt = DeltaTs[m];
+        //RK4
+        var rk4 = new EPSE.RK4_UniformCircularMotion(R, omega, t_max, dt);
+        rk4.Calculate();
+        var result = rk4.data();
+        series.push({
+            showLine: true,
+            lineWidth: 2.0,
+            label: "Δt = " + dt,
+            markerOptions: {
+                size: 14,
+                show: true //点描画の有無
+            }
+        });
+        plot2D.pushData(result);
+    }
+    //データ列オプションの代入
+    plot2D.options.series = series;
+    //線形プロット
+    plot2D.plot();
+    //グラフ画像データダウンロードイベントの登録
+    plot2D.initGraphDownloadEvent();
+});

@@ -6,16 +6,74 @@
     <meta name="description" content="RayEngine">
     <meta name="author" content="RaymondMcGuire">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="./image/encognita.ico">
+    <link rel="shortcut icon" href="../image/encognita.ico">
 
     <title>Ecognita Physice Simulation Visualization</title>
+    <script src="../javascript/jquery-1.10.2.js"></script>
+    <!-- jQuery用ライブラリ -->
+    <script src="../javascript/jquery-ui-1.10.3.js"></script>
+    <!-- jQueryUI用ライブラリ -->
+    <script src="../javascript/jquery.jqplot_1.0.8.js"></script>
+    <!-- jqPlot用ライブラリ             -->
+    <script src="../javascript/plugins/jqplot.canvasTextRenderer.js"></script>
+    <!-- canvasテキスト描画用プラグイン -->
+    <script src="../javascript/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+    <!-- canvas目盛描画用プラグイン     -->
+    <script src="../javascript/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
+    <!-- canvas軸ラベル描画用プラグイン -->
+    <script src="../javascript/plugins/jqplot.logAxisRenderer.js"></script>
+    <!-- 対数グラフ描画用プラグイン     -->
+    <script src="../javascript/plugins/jqplot.highlighter.js"></script>
+    <!-- ハイライト表示用プラグイン     -->
+    <script src="../javascript/plugins/jqplot.cursor.js"></script>
+    <!-- カーソル描画用プラグイン       -->
+    <script src="../javascript/plot2D_r8.2.js"></script>
+    <!-- ２次元グラフ描画クラス         -->
+    <style>
+        @import "../stylesheet/jquery.jqplot.css";
+        /* jqPlot用CSS */
+        
+        h1 {
+            padding: 0px 0px 10px 10px;
+            border-bottom: 1px solid gray;
+        }
+        
+        div#canvas-frame_graph {
+            width: 1280px;
+            /* 横幅 */
+            height: 720px;
+            /* 縦幅 */
+            background-color: #FFFFFF;
+            /* 背景色 */
+        }
+        
+        .jqplot-table-legend-label {
+            font-size: 30px;
+            font-family: 'Times New Roman';
+            color: #000000;
+        }
+        
+        div.jqplot-table-legend-swatch {
+            border-top-width: 10px;
+            border-bottom-width: 10px;
+            border-left-width: 11px;
+            border-right-width: 11px;
+        }
+        
+        div.jqplot-table-legend-swatch-outline {
+            border: 1px solid #cccccc;
+            padding: 2px;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="chart_euler" width="400" height="400"></canvas>
+
+    <h1>DEMO</h1>
+    <div id="canvas-frame_graph"></div>
 
     <!-- extra library -->
-
+    <!-- <script src="./release/dist/js/jqplot.min.js" type="text/javascript"></script> -->
     <!-- physics engine library  -->
     <script src="./main.js" type="text/javascript"></script>
 

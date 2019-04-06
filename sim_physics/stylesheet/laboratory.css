@@ -1,0 +1,81 @@
+*{padding: 0px; margin: 0px}
+body{
+	position: relative;
+}
+#toolbar{
+	width: 290px;
+	text-align: left;
+	margin: 10px 0px 0px 0px;
+	padding: 5px 5px;
+}
+#play {
+	width: 85px;
+}
+div#controller, div#controller_mini{
+	position: fixed;
+	width: 320px;
+	height: 190px;
+	bottom : 0px;
+	padding: 10px 0px 5px 0px;
+	background-color: rgba(256, 256, 256, 0.8);
+	text-align: center;
+	font-size: 10pt;
+	font-weight: bold;
+	z-index: 5000;
+	visibility: hidden;
+}
+
+div#controller_mini{
+	height: 80px;
+	bottom : 10px;
+}
+
+div#controller > div,
+div#controller > table,
+div#controller_mini > div,
+div#controller_mini > table {
+	margin: 0px auto 0px auto;
+	width: 290px;
+	display: inline-block;
+	text-align: left;
+}
+
+div#controller .ui-button-text,
+div#controller_mini .ui-button-text{
+	font-size: 10pt;
+}
+div#timesliderWaku{
+	width: 142px;
+	padding: 2px 5px 2px 5px;
+	margin: 0px 0px 0px 10px;
+	text-align: center;
+	border: 1px solid gray;
+}
+input#timeslider{
+	width: 138px;
+}
+div#graph-frame1, div#graph-frame2{
+	position: fixed;
+	width: 900px;  /* 横幅 */
+	height: 600px; /* 縦幅 */
+	overflow: hidden;
+	visibility: hidden;
+	top : 20px;
+	right: 20px;
+	background-color: rgba(256, 256, 256, 1.0);
+}
+@keyframes open {
+	  0% { opacity:0; }
+	100% { opacity:1; animationName :"none"; }
+}
+@keyframes close {
+	  0% { opacity:1; }
+	100% { opacity:0; animationName :"none"; }
+}
+select#graphSelect{
+	position: fixed;
+	top : 0px;
+	right: 0px;
+	background-color: rgba(256, 256, 256, 0.5);
+	z-index: 6000;
+}

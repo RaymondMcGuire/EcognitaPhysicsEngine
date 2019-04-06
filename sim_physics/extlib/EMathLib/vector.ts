@@ -28,6 +28,10 @@ module EMathLib{
             }
         }
 
+        clone(){
+            return new Vector(this._dimension,this._elements);
+        }
+
         set(params: Vector) {
             if (params.size() != this.size()) {
                 console.log("dimension is not correct!");
