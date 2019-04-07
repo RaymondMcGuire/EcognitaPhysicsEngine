@@ -6,7 +6,6 @@
  * ========================================================================= */
 /// <reference path="../ECS/Component.ts" />
 module EPSE {
-    declare var THREE: any;
 
     export class EVelocityVectorComponent extends ECS.Component {
         velocityVector:any;

@@ -7,7 +7,7 @@
 /// <reference path="../ECS/Component.ts" />
 /// <reference path="../EUtils/EPhysCommon.ts" />
 module EPSE {
-    declare var THREE: any;
+    declare let THREE: any;
 
     export class EMaterialComponent extends ECS.Component {
         material:any;
@@ -32,7 +32,7 @@ module EPSE {
             type = type || this.material.type;
         
             //材質パラメータ
-            var _parameter = {
+            let _parameter = {
                 color: this.material.color,
                 transparent: this.material.transparent,
                 opacity: this.material.opacity,
@@ -63,27 +63,27 @@ module EPSE {
                 alert("描画面指定ミス");
         
             }
-        
-            //材質オブジェクトの宣言と生成
+
+            let _material = new THREE.MeshLambertMaterial(_parameter);
             if (type === "Lambert") {
         
                 //ランバート反射材質
-                var _material = new THREE.MeshLambertMaterial(_parameter);
+                _material = new THREE.MeshLambertMaterial(_parameter);
         
             } else if (type === "Phong") {
         
                 //フォン反射材質
-                var _material = new THREE.MeshPhongMaterial(_parameter);
+                _material = new THREE.MeshPhongMaterial(_parameter);
         
             } else if (type === "Basic") {
         
                 //発光材質
-                var _material = new THREE.MeshBasicMaterial(_parameter);
+                _material = new THREE.MeshBasicMaterial(_parameter);
         
             } else if (type === "Normal") {
         
                 //法線材質
-                var _material = new THREE.MeshNormalMaterial(_parameter);
+                _material = new THREE.MeshNormalMaterial(_parameter);
         
             } else {
         

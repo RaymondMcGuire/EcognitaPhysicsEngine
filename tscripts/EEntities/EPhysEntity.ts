@@ -7,12 +7,12 @@
 /// <reference path="../ECS/Entity.ts" />
 /// <reference path="../EComponents/EComponents.ts" />
 module EPSE {
-    declare var THREE: any;
+    declare let THREE: any;
 
     export class EPhysEntity extends ECS.Entity {
 
         visible: boolean;
-        draggable: boolean;
+        draggable: boolean = false;
         allowDrag: boolean;
         
         c_physics:EPhysComponent;
@@ -36,7 +36,6 @@ module EPSE {
 
             //user setting
             this.visible = true;
-            this.draggable = false;
             this.allowDrag = false;
 
             this.CG = {};
@@ -45,14 +44,15 @@ module EPSE {
 
         create3DCG() {
 
-            var geometry = this.c_geometry.getGeometry();
+            let geometry = this.c_geometry.getGeometry();
         
-            var material = this.c_material.getMaterial();
+            let material = this.c_material.getMaterial();
 
-            var boundingBox = this.c_boundingBox.boundingBox;
+            let boundingBox = this.c_boundingBox.boundingBox;
         
             this.CG = new THREE.Mesh(geometry, material);
-        
+            
+            //console.log(this.draggable);
             //マウスドラックによる移動を行う場合
             if (this.draggable) {
         
@@ -66,14 +66,14 @@ module EPSE {
                 );
         
                 //形状オブジェクトの宣言と生成
-                var geometry = new THREE.CubeGeometry(
+                let geometry = new THREE.CubeGeometry(
                     boundingBox.width.x,
                     boundingBox.width.y,
                     boundingBox.width.z
                 );
         
                 //材質オブジェクトの宣言と生成
-                var material = new THREE.MeshBasicMaterial({
+                let material = new THREE.MeshBasicMaterial({
                     color: boundingBox.color,
                     transparent: boundingBox.transparent,
                     opacity: boundingBox.opacity
@@ -90,72 +90,62 @@ module EPSE {
         
                 //バウンディングボックスオブジェクトの位置を指定
                 boundingBox.CG.position.copy(this.c_physics.r).add(boundingBox.center);
-        
+
                 //バウンディングボックスオブジェクトの表示の有無を指定
                 boundingBox.CG.visible = boundingBox.visible;
         
-                //バウンディング球オブジェクトのシーンへの追加
-                //physLab.CG.scene.add(boundingBox.CG);
+                //add bounding box's CG
+                CG.scene.add(boundingBox.CG);
         
                 //バウンディングボックスオブジェクトに３次元オブジェクトを指定
                 boundingBox.CG.physObject = this;
         
             }
-        
         }
 
 
         create() {
-            //３次元グラフィックスの生成
+            //create 3D CG
             this.create3DCG();
             
-            var material = this.c_material.material;
-            var velocityVector = this.c_velocityVector.velocityVector;
-            var locus = this.c_locus.locus;
+            let material = this.c_material.material;
+            let velocityVector = this.c_velocityVector.velocityVector;
+            let locus = this.c_locus.locus;
 
-            //オブジェクトの影の生成元
             this.CG.castShadow = material.castShadow;
-        
-            //オブジェクトに影を描画
             this.CG.receiveShadow = material.receiveShadow;
         
-            //オブジェクトのシーンへの追加
-            //this.physLab.CG.scene.add(this.CG);
+            //add object' CG to scene
+            CG.scene.add(this.CG);
         
-            //速度ベクトルの表示
+            //velocity vector
             if (velocityVector.enabled) {
         
                 //矢印オブジェクトの生成
                 velocityVector.CG = new THREE.ArrowHelper(
-                    this.c_physics.v.clone().normalize(), //方向ベクトル
-                    this.c_physics.r.clone(), //起点座標
-                    1, //長さ
-                    velocityVector.color //色
+                    this.c_physics.v.clone().normalize(), //direction vector
+                    this.c_physics.r.clone(), //start point coordinate
+                    1,
+                    velocityVector.color 
                 );
-                //矢印オブジェクトのシーンへの追加
-                //this.physLab.CG.scene.add(velocityVector.CG);
+                CG.scene.add(velocityVector.CG);
         
             }
-            //軌跡オブジェクトの表示
+
+            //locus visualization
             if (locus.enabled) {
         
-                //形状オブジェクトの宣言
-                var geometry = new THREE.BufferGeometry();
-                //アトリビュート変数のサイズを指定
-                geometry.attributes = {
-                        position: { //頂点座標
-                            itemSize: 3, //各頂点ごとの要素数（x,y,z）
-                            array: new Float32Array(locus.maxNum * 3), //配列の宣言
-                            numItems: locus.maxNum * 3, //配列の要素数
-                            dynamic: true
-                        }
-                    }
-                    //材質オブジェクトの生成
-                var material = new THREE.LineBasicMaterial({ color: locus.color });
-                //軌跡オブジェクトの作成
+
+                let geometry = new THREE.BufferGeometry();
+                let vertices = new Float32Array(locus.maxNum * 3);
+                let bufferAttributes = new THREE.BufferAttribute(vertices,3);
+                bufferAttributes.dynamic = true;
+                geometry.addAttribute('position',  bufferAttributes);
+
+                let material = new THREE.LineBasicMaterial({ color: locus.color });
+
                 locus.CG = new THREE.Line(geometry, material);
-                //軌跡オブジェクトのシーンへの追加
-                //this.physLab.CG.scene.add(this.locus.CG);
+                CG.scene.add(locus.CG);
             }
         
             //プロットデータ配列に初期値を代入
@@ -163,48 +153,43 @@ module EPSE {
         
             //r_{-1}の値を取得する
             this.c_physics.computeInitialCondition();
-        
+            
         }
 
 
         update() {
+            
+            this.CG.position.copy(this.c_physics.r);
 
-            //位置ベクトルの指定
-            this.CG.position = this.c_physics.r.clone();
-        
-            //オブジェクトの可視化
             this.CG.visible = this.visible;
         
-            //３次元グラフィックス子要素の可視化も指定
-            for (var i = 0; i < this.CG.children.length; i++) {
+            for (let i = 0; i < this.CG.children.length; i++) {
         
                 this.CG.children[i].visible = this.visible;
         
             }
         
-            //軌跡オブジェクトの更新
+            //locus visualization
             this.updateLocus();
         
-            //速度ベクトルの更新
+            //velocity vector update
             this.updateVelocityVector();
         
-            //バウンディングボックスの位置と姿勢の更新
             this.updateBoundingBox();
-        
         }
 
 
         updateLocus(color?:any) {
 
-            var locus = this.c_locus.locus;
+            let locus = this.c_locus.locus;
             if (!locus.enabled) return;
         
             color = (color !== undefined) ? color : locus.color;
         
-            var start = this.c_physics.data.x.length - 1;
-            var end = locus.CG.geometry.attributes.position.array.length / 3;
+            let start = this.c_physics.data.x.length - 1;
+            let end = locus.CG.geometry.attributes.position.array.length / 3;
         
-            for (var n = start; n < end; n++) {
+            for (let n = start; n < end; n++) {
                 //頂点の位置座標の設定
                 locus.CG.geometry.attributes.position.array[n * 3] = this.c_physics.r.x;
                 locus.CG.geometry.attributes.position.array[n * 3 + 1] = this.c_physics.r.y;
@@ -219,7 +204,7 @@ module EPSE {
         
         
             //表示フラグ
-            var flag = false;
+            let flag = false;
         
             if (locusFlag == "true") {
         
@@ -242,14 +227,14 @@ module EPSE {
 
         updateVelocityVector(color?:any, scale?:any) {
 
-            var velocityVector = this.c_velocityVector.velocityVector;
+            let velocityVector = this.c_velocityVector.velocityVector;
             if (!velocityVector.enabled) return;
             
             color = (color !== undefined) ? color : velocityVector.color;
             scale = (scale !== undefined) ? scale : velocityVector.scale;
     
             //速度の大きさ
-            var v = this.c_physics.v.length() * scale;
+            let v = this.c_physics.v.length() * scale;
     
             if (v < 0.01) {
                 v = 0.01;
@@ -258,11 +243,11 @@ module EPSE {
     
             velocityVector.CG.setDirection(this.c_physics.v.clone().normalize());
             velocityVector.CG.setLength(v, scale, scale);
-            velocityVector.CG.position = this.c_physics.r.clone();
+            velocityVector.CG.position.copy(this.c_physics.r);
             velocityVector.CG.setColor(color);
     
             //表示フラグ
-            var flag = false;
+            let flag = false;
     
             //速度ベクトルの表示
             if (velocityVectorFlag == "true") {
@@ -280,7 +265,7 @@ module EPSE {
             }
     
             //子要素の可視化も指定
-            for (var i = 0; i < velocityVector.CG.children.length; i++) {
+            for (let i = 0; i < velocityVector.CG.children.length; i++) {
                 velocityVector.CG.children[i].visible = flag && velocityVector.visible;
             }
     
@@ -290,13 +275,13 @@ module EPSE {
 
             if (!this.draggable) return;
 
-            var boundingBox = this.c_boundingBox.boundingBox;
-        
+            let boundingBox = this.c_boundingBox.boundingBox;
+
             //バウンディングボックスの位置と姿勢の更新
             boundingBox.CG.position.copy(this.c_physics.r).add(boundingBox.center);
-        
+
             //表示フラグ
-            var flag = false;
+            let flag = false;
         
             if (boundingBoxFlag == "true") {
         
@@ -321,6 +306,18 @@ module EPSE {
                 this.c_physics.r_1.copy(this.c_physics.r);
             }
         
+        }
+
+        resetParameter() {
+
+            let physics = this.c_physics;
+            physics.initDynamicData();
+
+            overwriteProperty(this, parameter);
+
+            physics.recordDynamicData();
+
+            physics.computeInitialCondition();
         }
     }
 }

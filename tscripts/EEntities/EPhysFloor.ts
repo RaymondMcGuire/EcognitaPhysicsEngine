@@ -7,7 +7,7 @@
 /// <reference path="./EPhysEntity.ts" />
 module EPSE {
 
-    declare var THREE: any;
+    declare let THREE: any;
 
     export class EPhysFloor extends EPhysEntity {
 
@@ -43,22 +43,22 @@ module EPSE {
         create3DCG() {
             //床オブジェクトの生成
             this.CG = new THREE.Object3D();
-            for (var i = -this.n / 2; i < this.n / 2; i++) {
-                for (var j = -this.n / 2; j < this.n / 2; j++) {
+            for (let i = -this.n / 2; i < this.n / 2; i++) {
+                for (let j = -this.n / 2; j < this.n / 2; j++) {
                     //位置ベクトル
-                    var x = (j + 0.5) * this.width;
-                    var y = (i + 0.5) * this.width;
+                    let x = (j + 0.5) * this.width;
+                    let y = (i + 0.5) * this.width;
                     //一辺の長さ「width」の正方形の形状オブジェクトの宣言と生成
-                    var geometry = new THREE.PlaneGeometry(this.width, this.width);
+                    let geometry = new THREE.PlaneGeometry(this.width, this.width);
         
-                    var parameter = {
+                    let parameter = {
                             color: this.colors[Math.abs(i + j) % this.colors.length]
                         }
                         //市松模様とするための材質オブジェクトを生成
-                    var material = this.c_material.getMaterial(this.c_material.material.type, parameter);
+                    let material = this.c_material.getMaterial(this.c_material.material.type, parameter);
         
                     //平面オブジェクトの宣言と生成
-                    var plane = new THREE.Mesh(geometry, material);
+                    let plane = new THREE.Mesh(geometry, material);
                     //平面オブジェクトの位置の設定
                     plane.position.set(x, y, 0);
                     //平面オブジェクトに影を描画

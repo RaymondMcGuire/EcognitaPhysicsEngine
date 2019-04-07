@@ -11,7 +11,7 @@ module EPSE {
 
     export class E3DSystem extends ECS.System {
 
-        draggableObjects:any;
+        draggableObjects: any;
 
         renderer: any;
         camera: any;
@@ -76,7 +76,7 @@ module EPSE {
 
             //トラックボール
             this.trackball = {
-                enabled: false,            //トラックボール利用の有無
+                enabled: true,            //トラックボール利用の有無
                 noRotate: false,           //トラックボールの回転無効化
                 rotateSpeed: 2.0,          //トラックボールの回転速度の設定
                 noZoom: false,             //トラックボールの拡大無効化
@@ -353,39 +353,28 @@ module EPSE {
             //平面オブジェクトのシーンへの追加
             CG.scene.add(plane);
 
-            CG.canvasFrame.addEventListener('mousemove', onDocumentMouseMove, false);
-            CG.canvasFrame.addEventListener('mousedown', onDocumentMouseDown, false);
-            CG.canvasFrame.addEventListener('mouseup', onDocumentMouseUp, false);
-
-            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
-            var offset = new THREE.Vector3();
-            var INTERSECTED;  //マウスポインタが指しているオブジェクト 
-            var SELECTED;     //マウスドラック中のオブジェクト
-
-            //HTML要素の位置による補正量の取得
-            var elementOffsetLeft, elementOffsetTop;
-
-            function onDocumentMouseMove(event) {
+            CG.canvasFrame.addEventListener('mousemove', (event) => {
 
                 //マウスドラックフラグを解除
                 for (var i = 0; i < this.draggableObjects.length; i++) {
-                   this.draggableObjects[i].physObject.boundingBox.draggFlag = false;
+                    this.draggableObjects[i].physObject.c_boundingBox.boundingBox.draggFlag = false;
                 }
 
                 //マウスドラックが許可されていない場合は処理を終了
                 if (!allowDrag) return;
 
-                elementOffsetLeft =CG.canvasFrame.getBoundingClientRect().left;
-                elementOffsetTop =CG.canvasFrame.getBoundingClientRect().top;
+                elementOffsetLeft = CG.canvasFrame.getBoundingClientRect().left;
+                elementOffsetTop = CG.canvasFrame.getBoundingClientRect().top;
 
                 //マウスポインタの位置座標の取得
-                var mx = ((event.clientX - elementOffsetLeft) /CG.canvasFrame.clientWidth) * 2 - 1;
-                var my = -((event.clientY - elementOffsetTop) /CG.canvasFrame.clientHeight) * 2 + 1;
+                var mx = ((event.clientX - elementOffsetLeft) / CG.canvasFrame.clientWidth) * 2 - 1;
+                var my = -((event.clientY - elementOffsetTop) / CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
                 //プロジェクターオブジェクトの生成
-                var projector = new THREE.Projector();
+                //var projector = new THREE.Projector();
                 //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                vector = projector.unprojectVector(vector,CG.camera);
+                //vector = projector.unprojectVector(vector, CG.camera);
+                vector.unproject(CG.camera);
                 //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(CG.camera.position).normalize();
                 //カメラ位置座標から光線を発射
@@ -413,13 +402,13 @@ module EPSE {
                     SELECTED.physObject.boundingBox.draggFlag = true;
 
                     //マウスドラックイベントの実行
-                   this.mouseDraggEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+                    this.mouseDraggEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
 
                     return;
                 }
                 //光線と交わるオブジェクトを収集
                 var intersects = raycaster.intersectObjects(this.draggableObjects);
-
+         
                 //マウスポインタがオブジェクト上にある場合
                 if (intersects.length > 0) {
 
@@ -442,7 +431,7 @@ module EPSE {
                     INTERSECTED.physObject.boundingBox.draggFlag = true;
 
                     //マウスポインタのカーソルを変更
-                   CG.canvasFrame.style.cursor = 'pointer';
+                    CG.canvasFrame.style.cursor = 'pointer';
 
                 } else {
 
@@ -450,43 +439,46 @@ module EPSE {
                     INTERSECTED = null;
 
                     //マウスポインタのカーソルを変更
-                   CG.canvasFrame.style.cursor = 'auto';
+                    CG.canvasFrame.style.cursor = 'auto';
 
                 }
-            }
-            //マウスダウンイベント	
-            function onDocumentMouseDown(event) {
+            }, false);
+
+
+            CG.canvasFrame.addEventListener('mousedown', (event) => {
                 //マウスドラックが許可されていない場合は処理を終了
-                if (!this.allowDrag) return;
+                if (!allowDrag) return;
 
                 //マウスポインタの位置座標の取得
-                var mx = ((event.clientX - elementOffsetLeft) /CG.canvasFrame.clientWidth) * 2 - 1;
-                var my = -((event.clientY - elementOffsetTop) /CG.canvasFrame.clientHeight) * 2 + 1;
+                var mx = ((event.clientX - elementOffsetLeft) / CG.canvasFrame.clientWidth) * 2 - 1;
+                var my = -((event.clientY - elementOffsetTop) / CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
 
                 //プロジェクターオブジェクトの生成
-                var projector = new THREE.Projector();
+                //var projector = new THREE.Projector();
                 //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                vector = projector.unprojectVector(vector,CG.camera);
+                //vector = projector.unprojectVector(vector, CG.camera);
+                vector.unproject(CG.camera);
                 //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(CG.camera.position).normalize();
                 //カメラ位置座標から光線を発射
                 var raycaster = new THREE.Raycaster(CG.camera.position, vector);
                 //光線と交わるオブジェクトを収集
                 var intersects = raycaster.intersectObjects(this.draggableObjects);
+
                 //交わるオブジェクトが１個以上の場合
                 if (intersects.length > 0) {
-
+                    
                     //マウスドラックが許可されていない場合は処理を終了
                     if (!intersects[0].object.physObject.allowDrag) return;
 
                     //トラックボールを無効化
-                   CG.trackball.enabled = false;
+                    CG.trackball.enabled = false;
                     //クリックされたオブジェクトを「SELECTED」に登録
                     SELECTED = intersects[0].object;
 
                     //マウスダウンイベントの実行
-                   this.mouseDownEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+                    this.mouseDownEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
 
                     //光線と交わる平面オブジェクトオブジェクトを収集
                     var intersects = raycaster.intersectObject(plane);
@@ -495,20 +487,19 @@ module EPSE {
                     //平面オブジェクトの中心から見た相対的な位置座標
                     offset.copy(vec3).sub(plane.position);
                     //マウスポインタのカーソルを変更
-                   CG.canvasFrame.style.cursor = 'move';
+                    CG.canvasFrame.style.cursor = 'move';
                 }
-            }
-            //マウスアップイベント	
-            function onDocumentMouseUp(event) {
+            }, false);
+            CG.canvasFrame.addEventListener('mouseup', (event) => {
 
                 //トラックボールを有効化
-               CG.trackball.enabled =this.trackball.enabled;
+                CG.trackball.enabled = this.trackball.enabled;
 
                 //マウスポインタのカーソルを変更
-               CG.canvasFrame.style.cursor = 'auto';
+                CG.canvasFrame.style.cursor = 'auto';
 
                 //マウスドラックが許可されていない場合は処理を終了
-                if (!this.allowDrag) return;
+                if (!allowDrag) return;
 
                 //マウスアップ時にマウスポインタがオブジェクト上にある場合
                 if (INTERSECTED && SELECTED) {
@@ -520,29 +511,38 @@ module EPSE {
                     if (SELECTED.physObject.dynamic) SELECTED.physObject.resetParameter();
 
                     //マウスアップイベントの実行
-                   this.mouseUpEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+                    this.mouseUpEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
 
                     //画面キャプチャの生成フラグ
-                   this.makePictureFlag = true;
+                    makePictureFlag = true;
 
                     //マウスドラックの解除
                     SELECTED = null;
 
                 }
 
-            }
+            }, false);
+
+            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
+            var offset = new THREE.Vector3();
+            var INTERSECTED;  //マウスポインタが指しているオブジェクト 
+            var SELECTED;     //マウスドラック中のオブジェクト
+
+            //HTML要素の位置による補正量の取得
+            var elementOffsetLeft, elementOffsetTop;
+
         }
 
-        mouseDownEvent( physObject ) {
+        mouseDownEvent(physObject) {
 
         }
         //３次元オブジェクトがマウスドラックされた時に実行
-        mouseDraggEvent( physObject ) {
-        
+        mouseDraggEvent(physObject) {
+
         }
         //３次元オブジェクトがマウスアップされた時に実行
-        mouseUpEvent( physObject ) {
-        
+        mouseUpEvent(physObject) {
+
         }
 
         Execute() {

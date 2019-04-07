@@ -147,9 +147,10 @@ var EPSE;
             _this.getGeometry = function (type, parameter) {
                 type = type || this.geometry.type;
                 parameter = parameter || {};
+                var _geometry = new THREE.SphereGeometry();
                 if (type === "Sphere") {
                     //球オブジェクトの形状オブジェクト
-                    var _geometry = new THREE.SphereGeometry(parameter.radius || this.geometry.radius, //球の半径
+                    _geometry = new THREE.SphereGeometry(parameter.radius || this.geometry.radius, //球の半径
                     parameter.widthSegments || this.geometry.widthSegments, //y軸周りの分割数
                     parameter.heightSegments || this.geometry.heightSegments, //y軸上の正の頂点から負の頂点までの分割数
                     parameter.phiStart || this.geometry.phiStart, //y軸回転の開始角度
@@ -160,7 +161,7 @@ var EPSE;
                 }
                 else if (type === "Plane") {
                     //平面オブジェクトの形状オブジェクト
-                    var _geometry = new THREE.PlaneGeometry(parameter.width || this.geometry.width, //平面の横幅（x軸方向）
+                    _geometry = new THREE.PlaneGeometry(parameter.width || this.geometry.width, //平面の横幅（x軸方向）
                     parameter.height || this.geometry.height, //平面の縦軸（y軸方向）
                     parameter.widthSegments || this.geometry.widthSegments, //横方向分割数
                     parameter.heightSegments || this.geometry.heightSegments //縦方向分割数
@@ -168,7 +169,7 @@ var EPSE;
                 }
                 else if (type === "Cube") {
                     //立方体オブジェクトの形状オブジェクト
-                    var _geometry = new THREE.CubeGeometry(parameter.width || this.geometry.width, //立方体の横幅  （x軸方向）
+                    _geometry = new THREE.CubeGeometry(parameter.width || this.geometry.width, //立方体の横幅  （x軸方向）
                     parameter.depth || this.geometry.depth, //立方体の奥行き （y軸方向）
                     parameter.height || this.geometry.height, //立方体の高さ   （z軸方向）
                     parameter.widthSegments || this.geometry.widthSegments, //横方向分割数  
@@ -178,7 +179,7 @@ var EPSE;
                 }
                 else if (type === "Circle") {
                     //円オブジェクトの形状オブジェクト
-                    var _geometry = new THREE.CircleGeometry(parameter.radius || this.geometry.radius, //円の半径
+                    _geometry = new THREE.CircleGeometry(parameter.radius || this.geometry.radius, //円の半径
                     parameter.segments || this.geometry.segments, //円の分割数
                     parameter.thetaStart || this.geometry.thetaStart, //円弧の開始角度
                     parameter.thetaLength || this.geometry.thetaLength //円弧の終了角度
@@ -186,7 +187,7 @@ var EPSE;
                 }
                 else if (type === "Cylinder") {
                     //円柱オブジェクトの形状オブジェクト
-                    var _geometry = new THREE.CylinderGeometry(parameter.radiusTop || this.geometry.radiusTop, //円柱の上の円の半径
+                    _geometry = new THREE.CylinderGeometry(parameter.radiusTop || this.geometry.radiusTop, //円柱の上の円の半径
                     parameter.radiusBottom || this.geometry.radiusBottom, //円柱の下の円の半径
                     parameter.height || this.geometry.height, //円柱の高さ
                     parameter.radialSegments || this.geometry.radialSegments, //円の分割数
@@ -241,6 +242,7 @@ var EPSE;
  * ========================================================================= */
 var EPSE;
 (function (EPSE) {
+    EPSE.parameter = {};
     EPSE.g = 9.8;
     EPSE.delta_t = 0.001;
     EPSE.skipRendering = 40;
@@ -254,42 +256,30 @@ var EPSE;
     EPSE.resetFlag = false;
     EPSE.makePictureFlag = true;
     EPSE.displayFPS = true;
-    EPSE.draggable = false;
-    EPSE.allowDrag = false;
+    EPSE.draggable = true;
+    EPSE.allowDrag = true;
     EPSE.locusFlag = "true"; // (true | false | pause)
     EPSE.velocityVectorFlag = "pause"; // (true | false | pause)
     EPSE.boundingBoxFlag = "dragg"; // (true | false | dragg)
     EPSE.overwriteTmpStr = "this";
     function overwriteProperty(object, parameter) {
-        //parameter内の全てのプロパティを走査
         for (var propertyName in parameter) {
-            //propertyNameのプロパティのクラスによって実行内容を分ける
             if (!(parameter[propertyName] instanceof Object) || parameter[propertyName] instanceof Function) {
-                //parameterのpropertyNameが通常の値（ 文字列, bool値, 数値 など）の場合、値をそのまま代入
                 object[propertyName] = parameter[propertyName];
-                //コピー内容をコンソールへ出力
-                //console.log( PHYSICS.overwriteProperty.s + "." + propertyName + " = " + parameter[ propertyName ] );
             }
             else if (parameter[propertyName] instanceof Array) {
-                //配列の宣言
                 object[propertyName] = [];
-                //配列をコピー
                 for (var i = 0; i < parameter[propertyName].length; i++) {
                     object[propertyName].push(parameter[propertyName][i]);
                 }
-                //コピー内容をコンソールへ出力
-                //console.log( PHYSICS.overwriteProperty.s + "." + propertyName+ " = [" + object[ propertyName ] + "]" );
             }
             else if (parameter[propertyName] instanceof Object) {
-                //ドットシンタックスでオブジェクトの構造を表す
                 EPSE.overwriteTmpStr += "." + propertyName;
-                //未定義の場合の処理
                 object[propertyName] = object[propertyName] || {};
-                //parameterのpropertyNameのプロパティがオブジェクトの場合、再帰的に本関数を呼び出す
                 overwriteProperty(object[propertyName], parameter[propertyName]);
             }
             else {
-                console.log("想定外のクラスのプロパティが存在します！");
+                console.log("error！");
             }
         }
         EPSE.overwriteTmpStr = "this";
@@ -350,22 +340,22 @@ var EPSE;
             else {
                 alert("描画面指定ミス");
             }
-            //材質オブジェクトの宣言と生成
+            var _material = new THREE.MeshLambertMaterial(_parameter);
             if (type === "Lambert") {
                 //ランバート反射材質
-                var _material = new THREE.MeshLambertMaterial(_parameter);
+                _material = new THREE.MeshLambertMaterial(_parameter);
             }
             else if (type === "Phong") {
                 //フォン反射材質
-                var _material = new THREE.MeshPhongMaterial(_parameter);
+                _material = new THREE.MeshPhongMaterial(_parameter);
             }
             else if (type === "Basic") {
                 //発光材質
-                var _material = new THREE.MeshBasicMaterial(_parameter);
+                _material = new THREE.MeshBasicMaterial(_parameter);
             }
             else if (type === "Normal") {
                 //法線材質
-                var _material = new THREE.MeshNormalMaterial(_parameter);
+                _material = new THREE.MeshNormalMaterial(_parameter);
             }
             else {
                 alert("材質オブジェクト指定ミス");
@@ -510,7 +500,7 @@ var EPSE;
             if (!this.recordData)
                 return;
             if ((this.step == 0) || (this.step / this.skipRecord > this.data.x.length)) {
-                var step, x, y, z;
+                var step = void 0, x = void 0, y = void 0, z = void 0;
                 if (this.step == 0 || (!this.dynamic)) {
                     step = this.step;
                     x = this.r.x;
@@ -560,6 +550,7 @@ var EPSE;
         __extends(EPhysEntity, _super);
         function EPhysEntity() {
             var _this = _super.call(this, "physics_object") || this;
+            _this.draggable = false;
             //add physics object components'
             _this.c_physics = _this.addComponent(new EPSE.EPhysComponent());
             _this.c_boundingBox = _this.addComponent(new EPSE.EBoundingBoxComponent());
@@ -569,7 +560,6 @@ var EPSE;
             _this.c_velocityVector = _this.addComponent(new EPSE.EVelocityVectorComponent());
             //user setting
             _this.visible = true;
-            _this.draggable = false;
             _this.allowDrag = false;
             _this.CG = {};
             return _this;
@@ -579,6 +569,7 @@ var EPSE;
             var material = this.c_material.getMaterial();
             var boundingBox = this.c_boundingBox.boundingBox;
             this.CG = new THREE.Mesh(geometry, material);
+            //console.log(this.draggable);
             //マウスドラックによる移動を行う場合
             if (this.draggable) {
                 //バウンディングボックスの計算
@@ -586,69 +577,55 @@ var EPSE;
                 //バウンディングボックスの幅の取得
                 boundingBox.width = new THREE.Vector3().subVectors(this.CG.geometry.boundingBox.max, this.CG.geometry.boundingBox.min);
                 //形状オブジェクトの宣言と生成
-                var geometry = new THREE.CubeGeometry(boundingBox.width.x, boundingBox.width.y, boundingBox.width.z);
+                var geometry_1 = new THREE.CubeGeometry(boundingBox.width.x, boundingBox.width.y, boundingBox.width.z);
                 //材質オブジェクトの宣言と生成
-                var material = new THREE.MeshBasicMaterial({
+                var material_1 = new THREE.MeshBasicMaterial({
                     color: boundingBox.color,
                     transparent: boundingBox.transparent,
                     opacity: boundingBox.opacity
                 });
                 //バウンディングボックスオブジェクトの生成
-                boundingBox.CG = new THREE.Mesh(geometry, material);
+                boundingBox.CG = new THREE.Mesh(geometry_1, material_1);
                 //バウンディングボックスオブジェクトのローカル座標系における中心座標を格納
                 boundingBox.center = new THREE.Vector3().addVectors(this.CG.geometry.boundingBox.max, this.CG.geometry.boundingBox.min).divideScalar(2);
                 //バウンディングボックスオブジェクトの位置を指定
                 boundingBox.CG.position.copy(this.c_physics.r).add(boundingBox.center);
                 //バウンディングボックスオブジェクトの表示の有無を指定
                 boundingBox.CG.visible = boundingBox.visible;
-                //バウンディング球オブジェクトのシーンへの追加
-                //physLab.CG.scene.add(boundingBox.CG);
+                //add bounding box's CG
+                EPSE.CG.scene.add(boundingBox.CG);
                 //バウンディングボックスオブジェクトに３次元オブジェクトを指定
                 boundingBox.CG.physObject = this;
             }
         };
         EPhysEntity.prototype.create = function () {
-            //３次元グラフィックスの生成
+            //create 3D CG
             this.create3DCG();
             var material = this.c_material.material;
             var velocityVector = this.c_velocityVector.velocityVector;
             var locus = this.c_locus.locus;
-            //オブジェクトの影の生成元
             this.CG.castShadow = material.castShadow;
-            //オブジェクトに影を描画
             this.CG.receiveShadow = material.receiveShadow;
-            //オブジェクトのシーンへの追加
-            //this.physLab.CG.scene.add(this.CG);
-            //速度ベクトルの表示
+            //add object' CG to scene
+            EPSE.CG.scene.add(this.CG);
+            //velocity vector
             if (velocityVector.enabled) {
                 //矢印オブジェクトの生成
-                velocityVector.CG = new THREE.ArrowHelper(this.c_physics.v.clone().normalize(), //方向ベクトル
-                this.c_physics.r.clone(), //起点座標
-                1, //長さ
-                velocityVector.color //色
-                );
-                //矢印オブジェクトのシーンへの追加
-                //this.physLab.CG.scene.add(velocityVector.CG);
+                velocityVector.CG = new THREE.ArrowHelper(this.c_physics.v.clone().normalize(), //direction vector
+                this.c_physics.r.clone(), //start point coordinate
+                1, velocityVector.color);
+                EPSE.CG.scene.add(velocityVector.CG);
             }
-            //軌跡オブジェクトの表示
+            //locus visualization
             if (locus.enabled) {
-                //形状オブジェクトの宣言
                 var geometry = new THREE.BufferGeometry();
-                //アトリビュート変数のサイズを指定
-                geometry.attributes = {
-                    position: {
-                        itemSize: 3,
-                        array: new Float32Array(locus.maxNum * 3),
-                        numItems: locus.maxNum * 3,
-                        dynamic: true
-                    }
-                };
-                //材質オブジェクトの生成
-                var material = new THREE.LineBasicMaterial({ color: locus.color });
-                //軌跡オブジェクトの作成
-                locus.CG = new THREE.Line(geometry, material);
-                //軌跡オブジェクトのシーンへの追加
-                //this.physLab.CG.scene.add(this.locus.CG);
+                var vertices = new Float32Array(locus.maxNum * 3);
+                var bufferAttributes = new THREE.BufferAttribute(vertices, 3);
+                bufferAttributes.dynamic = true;
+                geometry.addAttribute('position', bufferAttributes);
+                var material_2 = new THREE.LineBasicMaterial({ color: locus.color });
+                locus.CG = new THREE.Line(geometry, material_2);
+                EPSE.CG.scene.add(locus.CG);
             }
             //プロットデータ配列に初期値を代入
             this.c_physics.recordDynamicData();
@@ -656,19 +633,15 @@ var EPSE;
             this.c_physics.computeInitialCondition();
         };
         EPhysEntity.prototype.update = function () {
-            //位置ベクトルの指定
-            this.CG.position = this.c_physics.r.clone();
-            //オブジェクトの可視化
+            this.CG.position.copy(this.c_physics.r);
             this.CG.visible = this.visible;
-            //３次元グラフィックス子要素の可視化も指定
             for (var i = 0; i < this.CG.children.length; i++) {
                 this.CG.children[i].visible = this.visible;
             }
-            //軌跡オブジェクトの更新
+            //locus visualization
             this.updateLocus();
-            //速度ベクトルの更新
+            //velocity vector update
             this.updateVelocityVector();
-            //バウンディングボックスの位置と姿勢の更新
             this.updateBoundingBox();
         };
         EPhysEntity.prototype.updateLocus = function (color) {
@@ -716,7 +689,7 @@ var EPSE;
             }
             velocityVector.CG.setDirection(this.c_physics.v.clone().normalize());
             velocityVector.CG.setLength(v, scale, scale);
-            velocityVector.CG.position = this.c_physics.r.clone();
+            velocityVector.CG.position.copy(this.c_physics.r);
             velocityVector.CG.setColor(color);
             //表示フラグ
             var flag = false;
@@ -761,6 +734,13 @@ var EPSE;
                 this.c_physics.r_1.copy(this.c_physics.r);
             }
         };
+        EPhysEntity.prototype.resetParameter = function () {
+            var physics = this.c_physics;
+            physics.initDynamicData();
+            EPSE.overwriteProperty(this, EPSE.parameter);
+            physics.recordDynamicData();
+            physics.computeInitialCondition();
+        };
         return EPhysEntity;
     }(ECS.Entity));
     EPSE.EPhysEntity = EPhysEntity;
@@ -803,11 +783,11 @@ var EPSE;
                     var y = (i + 0.5) * this.width;
                     //一辺の長さ「width」の正方形の形状オブジェクトの宣言と生成
                     var geometry = new THREE.PlaneGeometry(this.width, this.width);
-                    var parameter = {
+                    var parameter_1 = {
                         color: this.colors[Math.abs(i + j) % this.colors.length]
                     };
                     //市松模様とするための材質オブジェクトを生成
-                    var material = this.c_material.getMaterial(this.c_material.material.type, parameter);
+                    var material = this.c_material.getMaterial(this.c_material.material.type, parameter_1);
                     //平面オブジェクトの宣言と生成
                     var plane = new THREE.Mesh(geometry, material);
                     //平面オブジェクトの位置の設定
@@ -822,6 +802,46 @@ var EPSE;
         return EPhysFloor;
     }(EPSE.EPhysEntity));
     EPSE.EPhysFloor = EPhysFloor;
+})(EPSE || (EPSE = {}));
+/* =========================================================================
+ *
+ *  EPhysSphere.ts
+ *
+ *
+ * ========================================================================= */
+/// <reference path="./EPhysEntity.ts" />
+/// <reference path="../EUtils/EPhysCommon.ts" />
+var EPSE;
+(function (EPSE) {
+    var EPhysSphere = /** @class */ (function (_super) {
+        __extends(EPhysSphere, _super);
+        function EPhysSphere(param) {
+            var _this = _super.call(this) || this;
+            //basic element setting
+            EPSE.parameter = param;
+            _this.name = "sphere";
+            _this.radius = 1.0;
+            _this.draggable = true;
+            //overwrite param
+            EPSE.overwriteProperty(_this, EPSE.parameter);
+            var geometry = _this.c_geometry.geometry;
+            var material = _this.c_material.material;
+            //material setting
+            material.shading = "Smooth";
+            //geometry setting
+            geometry.type = "Sphere";
+            geometry.radius = _this.radius;
+            geometry.widthSegments = 20;
+            geometry.heightSegments = 20;
+            geometry.phiStart = 0;
+            geometry.phiLength = Math.PI * 2;
+            geometry.thetaStart = 0;
+            geometry.thetaLength = Math.PI;
+            return _this;
+        }
+        return EPhysSphere;
+    }(EPSE.EPhysEntity));
+    EPSE.EPhysSphere = EPhysSphere;
 })(EPSE || (EPSE = {}));
 /* =========================================================================
  *
@@ -908,7 +928,7 @@ var EPSE;
             };
             //トラックボール
             _this.trackball = {
-                enabled: false,
+                enabled: true,
                 noRotate: false,
                 rotateSpeed: 2.0,
                 noZoom: false,
@@ -1087,6 +1107,7 @@ var EPSE;
             }
         };
         E3DSystem.prototype.initDragg = function () {
+            var _this = this;
             //仮想物理実験室全体でのマウスドラック無しの場合
             if (!EPSE.draggable)
                 return;
@@ -1101,19 +1122,10 @@ var EPSE;
             plane.visible = false;
             //平面オブジェクトのシーンへの追加
             EPSE.CG.scene.add(plane);
-            EPSE.CG.canvasFrame.addEventListener('mousemove', onDocumentMouseMove, false);
-            EPSE.CG.canvasFrame.addEventListener('mousedown', onDocumentMouseDown, false);
-            EPSE.CG.canvasFrame.addEventListener('mouseup', onDocumentMouseUp, false);
-            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
-            var offset = new THREE.Vector3();
-            var INTERSECTED; //マウスポインタが指しているオブジェクト 
-            var SELECTED; //マウスドラック中のオブジェクト
-            //HTML要素の位置による補正量の取得
-            var elementOffsetLeft, elementOffsetTop;
-            function onDocumentMouseMove(event) {
+            EPSE.CG.canvasFrame.addEventListener('mousemove', function (event) {
                 //マウスドラックフラグを解除
-                for (var i = 0; i < this.draggableObjects.length; i++) {
-                    this.draggableObjects[i].physObject.boundingBox.draggFlag = false;
+                for (var i = 0; i < _this.draggableObjects.length; i++) {
+                    _this.draggableObjects[i].physObject.c_boundingBox.boundingBox.draggFlag = false;
                 }
                 //マウスドラックが許可されていない場合は処理を終了
                 if (!EPSE.allowDrag)
@@ -1125,9 +1137,10 @@ var EPSE;
                 var my = -((event.clientY - elementOffsetTop) / EPSE.CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
                 //プロジェクターオブジェクトの生成
-                var projector = new THREE.Projector();
+                //var projector = new THREE.Projector();
                 //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                vector = projector.unprojectVector(vector, EPSE.CG.camera);
+                //vector = projector.unprojectVector(vector, CG.camera);
+                vector.unproject(EPSE.CG.camera);
                 //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(EPSE.CG.camera.position).normalize();
                 //カメラ位置座標から光線を発射
@@ -1145,11 +1158,11 @@ var EPSE;
                     //マウスドラックフラグの設定
                     SELECTED.physObject.boundingBox.draggFlag = true;
                     //マウスドラックイベントの実行
-                    this.mouseDraggEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
+                    _this.mouseDraggEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
                     return;
                 }
                 //光線と交わるオブジェクトを収集
-                var intersects = raycaster.intersectObjects(this.draggableObjects);
+                var intersects = raycaster.intersectObjects(_this.draggableObjects);
                 //マウスポインタがオブジェクト上にある場合
                 if (intersects.length > 0) {
                     if (INTERSECTED != intersects[0].object) {
@@ -1174,26 +1187,26 @@ var EPSE;
                     //マウスポインタのカーソルを変更
                     EPSE.CG.canvasFrame.style.cursor = 'auto';
                 }
-            }
-            //マウスダウンイベント	
-            function onDocumentMouseDown(event) {
+            }, false);
+            EPSE.CG.canvasFrame.addEventListener('mousedown', function (event) {
                 //マウスドラックが許可されていない場合は処理を終了
-                if (!this.allowDrag)
+                if (!EPSE.allowDrag)
                     return;
                 //マウスポインタの位置座標の取得
                 var mx = ((event.clientX - elementOffsetLeft) / EPSE.CG.canvasFrame.clientWidth) * 2 - 1;
                 var my = -((event.clientY - elementOffsetTop) / EPSE.CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
                 //プロジェクターオブジェクトの生成
-                var projector = new THREE.Projector();
+                //var projector = new THREE.Projector();
                 //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                vector = projector.unprojectVector(vector, EPSE.CG.camera);
+                //vector = projector.unprojectVector(vector, CG.camera);
+                vector.unproject(EPSE.CG.camera);
                 //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(EPSE.CG.camera.position).normalize();
                 //カメラ位置座標から光線を発射
                 var raycaster = new THREE.Raycaster(EPSE.CG.camera.position, vector);
                 //光線と交わるオブジェクトを収集
-                var intersects = raycaster.intersectObjects(this.draggableObjects);
+                var intersects = raycaster.intersectObjects(_this.draggableObjects);
                 //交わるオブジェクトが１個以上の場合
                 if (intersects.length > 0) {
                     //マウスドラックが許可されていない場合は処理を終了
@@ -1204,7 +1217,7 @@ var EPSE;
                     //クリックされたオブジェクトを「SELECTED」に登録
                     SELECTED = intersects[0].object;
                     //マウスダウンイベントの実行
-                    this.mouseDownEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
+                    _this.mouseDownEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
                     //光線と交わる平面オブジェクトオブジェクトを収集
                     var intersects = raycaster.intersectObject(plane);
                     //クリック時のマウスポインタの指した平面オブジェクトの３次元空間中の位置座標
@@ -1214,15 +1227,14 @@ var EPSE;
                     //マウスポインタのカーソルを変更
                     EPSE.CG.canvasFrame.style.cursor = 'move';
                 }
-            }
-            //マウスアップイベント	
-            function onDocumentMouseUp(event) {
+            }, false);
+            EPSE.CG.canvasFrame.addEventListener('mouseup', function (event) {
                 //トラックボールを有効化
-                EPSE.CG.trackball.enabled = this.trackball.enabled;
+                EPSE.CG.trackball.enabled = _this.trackball.enabled;
                 //マウスポインタのカーソルを変更
                 EPSE.CG.canvasFrame.style.cursor = 'auto';
                 //マウスドラックが許可されていない場合は処理を終了
-                if (!this.allowDrag)
+                if (!EPSE.allowDrag)
                     return;
                 //マウスアップ時にマウスポインタがオブジェクト上にある場合
                 if (INTERSECTED && SELECTED) {
@@ -1232,13 +1244,19 @@ var EPSE;
                     if (SELECTED.physObject.dynamic)
                         SELECTED.physObject.resetParameter();
                     //マウスアップイベントの実行
-                    this.mouseUpEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
+                    _this.mouseUpEvent(SELECTED.physObject); //<------------------------------------------------------------イベント実行
                     //画面キャプチャの生成フラグ
-                    this.makePictureFlag = true;
+                    EPSE.makePictureFlag = true;
                     //マウスドラックの解除
                     SELECTED = null;
                 }
-            }
+            }, false);
+            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
+            var offset = new THREE.Vector3();
+            var INTERSECTED; //マウスポインタが指しているオブジェクト 
+            var SELECTED; //マウスドラック中のオブジェクト
+            //HTML要素の位置による補正量の取得
+            var elementOffsetLeft, elementOffsetTop;
         };
         E3DSystem.prototype.mouseDownEvent = function (physObject) {
         };
@@ -1277,63 +1295,47 @@ var EPSE;
         EEventListenerSystem.prototype.Execute = function () {
             var _this = this;
             _super.prototype.Execute.call(this);
-            //FPS計測結果を表示するHTML要素を追加
             if (EPSE.displayFPS) {
-                //FPS計測
+                //FPS
                 this.stats = new Stats();
-                //HTML要素の追加
                 document.getElementById(EPSE.frameID).appendChild(this.stats.domElement);
             }
-            //計算開始ボタン・一時停止ボタンのクリックイベントの追加
             if (EPSE.playButtonID) {
-                //ボタンの表示内容を指定
-                document.getElementById(EPSE.playButtonID).innerHTML = "計算開始";
-                //マウスクリックイベントの追加
+                document.getElementById(EPSE.playButtonID).innerHTML = "start";
                 document.getElementById(EPSE.playButtonID).addEventListener('mousedown', function () {
-                    //初期状態フラグの解除
                     EPSE.initFlag = false;
-                    //一時停止フラグの反転
                     EPSE.pauseFlag = !EPSE.pauseFlag;
-                    //ボタンの表示内容の変更
+                    //change button text
                     _this.switchButton();
                 }, false);
             }
             else {
-                //初期状態フラグの解除
                 EPSE.initFlag = false;
-                //一時停止の解除
                 EPSE.pauseFlag = false;
             }
-            //リセットボタンのクリックイベントの追加
             if (EPSE.resetButtonID) {
-                document.getElementById(EPSE.resetButtonID).innerHTML = "初期状態へ戻る";
+                document.getElementById(EPSE.resetButtonID).innerHTML = "initial condition";
                 document.getElementById(EPSE.resetButtonID).addEventListener('mousedown', function () {
-                    //再計算用フラグを立てる
                     EPSE.resetFlag = true;
-                    //一時停止を立てる
                     EPSE.pauseFlag = true;
-                    //表示するボタンの変更
                     _this.switchButton();
                 }, false);
             }
-            //画面キャプチャ
             if (EPSE.pictureID) {
-                document.getElementById(EPSE.pictureID).innerHTML = "画面キャプチャ";
+                document.getElementById(EPSE.pictureID).innerHTML = "capture";
             }
         };
         EEventListenerSystem.prototype.switchButton = function () {
-            //一時停止フラグによる分岐
             if (EPSE.pauseFlag) {
-                var label = (EPSE.resetFlag) ? "計算開始" : "計算再開";
+                var label = (EPSE.resetFlag) ? "start" : "restart";
                 document.getElementById(EPSE.playButtonID).innerHTML = label;
                 document.getElementById(EPSE.pictureID).style.visibility = "visible";
             }
             else {
-                var label = "一時停止";
+                var label = "pause";
                 document.getElementById(EPSE.playButtonID).innerHTML = label;
                 document.getElementById(EPSE.pictureID).style.visibility = "hidden";
             }
-            //画面キャプチャの生成フラグ
             EPSE.makePictureFlag = true;
         };
         return EEventListenerSystem;
@@ -1367,108 +1369,78 @@ var EPSE;
             this.event_listener_system.Execute();
             this.three_system.Execute();
             for (var i = 0; i < this.objects.length; i++) {
-                //３次元オブジェクトを生成
                 this.createPhysObject(this.objects[i]);
             }
-            //無限ループ関数の実行
             this.loop();
         };
         EPhysCore.prototype.createPhysObject = function (physObject) {
-            //３次元オブジェクトの生成と表示
             physObject.create();
-            //ドラック可能オブジェクトとして登録
             if (physObject.draggable) {
-                this.three_system.draggableObjects.push(physObject.boundingBox.CG);
-            }
-            else {
-                EPSE.CG.scene.add(physObject.CG);
+                this.three_system.draggableObjects.push(physObject.c_boundingBox.boundingBox.CG);
             }
         };
         EPhysCore.prototype.checkFlags = function () {
-            //リセットフラグ
             if (EPSE.resetFlag) {
                 for (var i = 0; i < this.objects.length; i++) {
-                    if (this.objects[i].data.x.length == 0)
+                    if (this.objects[i].c_physics.data.x.length == 0)
                         continue;
-                    this.objects[i].r.x = this.objects[i].data.x[0][1];
-                    this.objects[i].r.y = this.objects[i].data.y[0][1];
-                    this.objects[i].r.z = this.objects[i].data.z[0][1];
-                    this.objects[i].v.x = this.objects[i].data.vx[0][1];
-                    this.objects[i].v.y = this.objects[i].data.vy[0][1];
-                    this.objects[i].v.z = this.objects[i].data.vz[0][1];
+                    this.objects[i].c_physics.r.x = this.objects[i].c_physics.data.x[0][1];
+                    this.objects[i].c_physics.r.y = this.objects[i].c_physics.data.y[0][1];
+                    this.objects[i].c_physics.r.z = this.objects[i].c_physics.data.z[0][1];
+                    this.objects[i].c_physics.v.x = this.objects[i].c_physics.data.vx[0][1];
+                    this.objects[i].c_physics.v.y = this.objects[i].c_physics.data.vy[0][1];
+                    this.objects[i].c_physics.v.z = this.objects[i].c_physics.data.vz[0][1];
                     this.objects[i].allowDrag = this.objects[i].draggable;
-                    this.objects[i].step = 0;
-                    //内部データの初期化
+                    this.objects[i].c_physics.step = 0;
                     this.objects[i].resetParameter();
                 }
-                //停止フラグの解除
                 EPSE.resetFlag = false;
-                //一時停止フラグを立てる
                 EPSE.pauseFlag = true;
-                //画面キャプチャの生成フラグ
                 EPSE.makePictureFlag = true;
-                //初期フラグを立てる
                 EPSE.initFlag = true;
-                //各種計算パラメータの初期化
                 this.step = 0;
-                //実験室のマウスドラックを規定値へ
                 EPSE.allowDrag = EPSE.draggable;
             }
         };
         EPhysCore.prototype.timeEvolution = function () {
-            //一時停止中の場合
             if (EPSE.pauseFlag)
                 return;
-            //描画の間引回数だけ時間発展を進める
             for (var i = 0; i < EPSE.skipRendering; i++) {
-                //実験室オブジェクトのステップ数のインクリメント
                 this.step++;
                 for (var j = 0; j < this.objects.length; j++) {
-                    if (!this.objects[j].dynamic)
+                    if (!this.objects[j].c_physics.dynamic)
                         continue;
-                    //運動中はマウスドラックを禁止する
                     this.objects[j].allowDrag = false;
-                    //内部時間の同期
-                    for (var k = this.objects[j].step; k <= this.step; k++) {
-                        //オブジェクトの時間発展
-                        this.objects[j].timeEvolution();
+                    for (var k = this.objects[j].c_physics.step; k <= this.step; k++) {
+                        //console.log(this.objects[j].c_physics.dynamic);
+                        this.objects[j].c_physics.timeEvolution();
                     }
                 }
             }
         };
         EPhysCore.prototype.makePicture = function () {
-            //画面キャプチャ生成フラグのチェック
             if (!EPSE.makePictureFlag)
                 return;
             if (EPSE.pictureID) {
-                //canvas要素→DataURL形式
+                //canvas->DataURL
                 document.getElementById(EPSE.pictureID).href = EPSE.CG.renderer.domElement.toDataURL("image/png");
                 var time = EPSE.delta_t * this.step;
-                //PNGファイル名の命名
                 document.getElementById(EPSE.pictureID).download = time.toFixed(2) + ".png";
             }
-            //画面キャプチャ生成フラグの解除
             EPSE.makePictureFlag = false;
         };
         EPhysCore.prototype.loop = function () {
-            //トラックボールによるカメラオブジェクトのプロパティの更新
             EPSE.CG.trackball.update();
-            //FPT計測・表示
+            //FPS
             if (this.event_listener_system.stats)
                 this.event_listener_system.stats.update();
-            //フラグチェック
             this.checkFlags();
-            //実験室の時間発展の計算
             this.timeEvolution();
-            //３次元グラフィックスの更新
             for (var i = 0; i < this.objects.length; i++) {
                 this.objects[i].update();
             }
-            //レンダリング
             EPSE.CG.renderer.render(EPSE.CG.scene, EPSE.CG.camera);
-            //画面キャプチャの生成
             this.makePicture();
-            //「loop()」関数の呼び出し
             requestAnimationFrame(this.loop.bind(this));
         };
         return EPhysCore;
@@ -1479,9 +1451,40 @@ var EPSE;
 /// <reference path="./EEventListenerSystem.ts" />
 /// <reference path="./EPhysCore.ts" />
 /// <reference path="./EEntities/EPhysFloor.ts" />
+/// <reference path="./EEntities/EPhysSphere.ts" />
 /// <reference path="./ESystems/ESystems.ts" />
 var floor = new EPSE.EPhysFloor();
-console.log(floor);
+var sphere = new EPSE.EPhysSphere({
+    c_locus: {
+        locus: {
+            enabled: true,
+            visible: true,
+            color: 0xFF00FF,
+            maxNum: 1000
+        }
+    },
+    c_velocityVector: {
+        velocityVector: {
+            enabled: true,
+            visible: true,
+            color: new THREE.Color(0xFF00FF),
+            scale: 0.5
+        }
+    },
+    c_boundingBox: {
+        boundingBox: {
+            visible: true
+        }
+    },
+    c_physics: {
+        r: new THREE.Vector3(0, 0, 2),
+        v: new THREE.Vector3(0, -5, 12),
+        dynamic: true,
+        recordData: true,
+        skipRecord: 50
+    }
+});
 var phys_system = new EPSE.EPhysCore();
 phys_system.objects.push(floor);
+phys_system.objects.push(sphere);
 phys_system.Execute();

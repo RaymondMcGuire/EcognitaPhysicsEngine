@@ -6,7 +6,6 @@
  * ========================================================================= */
 /// <reference path="../ECS/Component.ts" />
 module EPSE {
-    declare var THREE: any;
 
     export class ELocusComponent extends ECS.Component {
         locus:any;
