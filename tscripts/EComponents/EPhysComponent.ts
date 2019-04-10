@@ -113,7 +113,7 @@ module EPSE {
 
         //time evolution based on Verlet algorithm
         computeTimeEvolution(dt: number) {
-
+            //console.log(this.r);
             let x_ = this.r.x;
             let y_ = this.r.y;
             let z_ = this.r.z;

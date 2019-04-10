@@ -8,16 +8,16 @@
 module EPSE {
 
     export class EBoundingBoxComponent extends ECS.Component {
-        boundingBox:any;
+        boundingBox: any;
         constructor() {
             super("boundingbox");
 
             this.boundingBox = {
-                visible: false,    
-                color: null,      
-                opacity: 0.2,      
-                transparent: true, 
-                draggFlag: false   
+                visible: false,
+                color: null,
+                opacity: 0.2,
+                transparent: true,
+                draggFlag: false
             };
         }
     }

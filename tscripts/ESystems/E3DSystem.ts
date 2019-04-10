@@ -89,33 +89,25 @@ module EPSE {
         }
 
         initThree() {
-            //キャンバスフレームDOM要素の取得
-            CG.canvasFrame = document.getElementById(frameID);
 
-            //レンダラーオブジェクトの生成
+            CG.canvasFrame = document.getElementById(frameID);
             CG.renderer = new THREE.WebGLRenderer(this.renderer.parameters);
 
-            if (!CG.renderer) alert('Three.js の初期化に失敗しました');
+            if (!CG.renderer) alert('Three.js Error');
 
-            //レンダラーのサイズの設定
             CG.renderer.setSize(
                 CG.canvasFrame.clientWidth,
                 CG.canvasFrame.clientHeight
             );
 
-            //キャンバスフレームDOM要素にcanvas要素を追加
             CG.canvasFrame.appendChild(CG.renderer.domElement);
 
-            //レンダラークリアーカラーの設定
             CG.renderer.setClearColor(
                 this.renderer.clearColor,
                 this.renderer.clearAlpha
             );
 
-            //シャドーマップの利用
             CG.renderer.shadowMap.enabled = this.shadow.shadowMapEnabled;
-
-            //シーンオブジェクトの生成
             CG.scene = new THREE.Scene();
         }
 
@@ -338,199 +330,141 @@ module EPSE {
         }
 
         initDragg() {
-            //仮想物理実験室全体でのマウスドラック無しの場合
+
             if (!draggable) return;
 
-            ///////////////光線受信用平面オブジェクトの定義//////////////////
-            //形状オブジェクトの宣言と生成
+            let elementOffsetLeft = 0, elementOffsetTop = 0;
+            let offset = new THREE.Vector3();
+            let INTERSECTED = null;
+            let SELECTED = null;
+
+            //un-visible plane(for drag function)
             var geometry = new THREE.PlaneGeometry(200, 200, 8, 8);
-            //材質オブジェクトの宣言と生成
             var material = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
-            //平面オブジェクトの生成
             var plane = new THREE.Mesh(geometry, material);
-            //平面オブジェクトの可視化
-            plane.visible = false;
-            //平面オブジェクトのシーンへの追加
+            plane.material.visible = false;
             CG.scene.add(plane);
 
             CG.canvasFrame.addEventListener('mousemove', (event) => {
 
-                //マウスドラックフラグを解除
+                //hide bounding box
                 for (var i = 0; i < this.draggableObjects.length; i++) {
-                    this.draggableObjects[i].physObject.c_boundingBox.boundingBox.draggFlag = false;
+                    this.draggableObjects[i].obj.c_boundingBox.boundingBox.draggFlag = false;
                 }
 
-                //マウスドラックが許可されていない場合は処理を終了
                 if (!allowDrag) return;
 
                 elementOffsetLeft = CG.canvasFrame.getBoundingClientRect().left;
                 elementOffsetTop = CG.canvasFrame.getBoundingClientRect().top;
 
-                //マウスポインタの位置座標の取得
+                //get mouse coord in screen
                 var mx = ((event.clientX - elementOffsetLeft) / CG.canvasFrame.clientWidth) * 2 - 1;
                 var my = -((event.clientY - elementOffsetTop) / CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
-                //プロジェクターオブジェクトの生成
-                //var projector = new THREE.Projector();
-                //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                //vector = projector.unprojectVector(vector, CG.camera);
+
                 vector.unproject(CG.camera);
-                //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(CG.camera.position).normalize();
-                //カメラ位置座標から光線を発射
                 var raycaster = new THREE.Raycaster(CG.camera.position, vector);
 
-                //オブジェクトがマウスドラックされている時
                 if (SELECTED) {
 
-                    //光線と交わる平面オブジェクトオブジェクトを収集
                     var intersects = raycaster.intersectObject(plane);
-                    //マウスドラック時のマウスポインタの指している平面オブジェクトの３次元空間中の位置座標
-                    var vec3 = intersects[0].point;
 
-                    //マウスドラックされているオブジェクトのバウンディングボックスを移動
-                    SELECTED.physObject.boundingBox.CG.position.copy(
+                    var vec3 = intersects[0].point;
+                    SELECTED.obj.c_boundingBox.boundingBox.CG.position.copy(
                         vec3.sub(offset)
                     );
 
-                    //マウスドラックされているオブジェクトを移動
-                    SELECTED.physObject.r.copy(
-                        SELECTED.physObject.boundingBox.CG.position
-                    ).sub(SELECTED.physObject.boundingBox.center);
+                    SELECTED.obj.c_physics.r.copy(
+                        SELECTED.obj.c_boundingBox.boundingBox.CG.position
+                    ).sub(SELECTED.obj.c_boundingBox.boundingBox.center);
 
-                    //マウスドラックフラグの設定
-                    SELECTED.physObject.boundingBox.draggFlag = true;
+                    SELECTED.obj.c_boundingBox.boundingBox.draggFlag = true;
 
-                    //マウスドラックイベントの実行
-                    this.mouseDraggEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+                    this.mouseDraggEvent(SELECTED.obj);
 
                     return;
                 }
-                //光線と交わるオブジェクトを収集
+
                 var intersects = raycaster.intersectObjects(this.draggableObjects);
-         
-                //マウスポインタがオブジェクト上にある場合
+
                 if (intersects.length > 0) {
 
                     if (INTERSECTED != intersects[0].object) {
 
-                        //マウスドラックが許可されていない場合は処理を終了
-                        if (!intersects[0].object.physObject.allowDrag) return;
+                        if (!intersects[0].object.obj.allowDrag) return;
 
-                        //マウスポインタが指しているオブジェクトが登録されていなければ、一番手前のオブジェクトを「INTERSECTED」に登録
                         INTERSECTED = intersects[0].object;
-
-                        //平面オブジェクトの位置座標を「INTERSECTED」に登録されたオブジェクトと同じ位置座標とする
                         plane.position.copy(INTERSECTED.position);
-
-                        //平面オブジェクトの上ベクトルをカメラの位置座標の方向へ向ける
                         plane.lookAt(CG.camera.position);
-
                     }
-                    //バウンディングボックスの可視化
-                    INTERSECTED.physObject.boundingBox.draggFlag = true;
 
-                    //マウスポインタのカーソルを変更
+                    //show bounding box
+                    INTERSECTED.obj.c_boundingBox.boundingBox.draggFlag = true;
                     CG.canvasFrame.style.cursor = 'pointer';
 
                 } else {
 
-                    //マウスポインタがオブジェクトから離れている場合
                     INTERSECTED = null;
-
-                    //マウスポインタのカーソルを変更
                     CG.canvasFrame.style.cursor = 'auto';
-
                 }
             }, false);
 
 
             CG.canvasFrame.addEventListener('mousedown', (event) => {
-                //マウスドラックが許可されていない場合は処理を終了
+
                 if (!allowDrag) return;
 
-                //マウスポインタの位置座標の取得
+
                 var mx = ((event.clientX - elementOffsetLeft) / CG.canvasFrame.clientWidth) * 2 - 1;
                 var my = -((event.clientY - elementOffsetTop) / CG.canvasFrame.clientHeight) * 2 + 1;
                 var vector = new THREE.Vector3(mx, my, 0.5);
 
-                //プロジェクターオブジェクトの生成
-                //var projector = new THREE.Projector();
-                //逆投影変換を行うことで仮想空間内のベクトルへと変換する
-                //vector = projector.unprojectVector(vector, CG.camera);
                 vector.unproject(CG.camera);
-                //カメラ位置座標を起点として規格化を行う
                 vector = vector.sub(CG.camera.position).normalize();
-                //カメラ位置座標から光線を発射
                 var raycaster = new THREE.Raycaster(CG.camera.position, vector);
-                //光線と交わるオブジェクトを収集
                 var intersects = raycaster.intersectObjects(this.draggableObjects);
 
-                //交わるオブジェクトが１個以上の場合
                 if (intersects.length > 0) {
-                    
-                    //マウスドラックが許可されていない場合は処理を終了
-                    if (!intersects[0].object.physObject.allowDrag) return;
 
-                    //トラックボールを無効化
+                    if (!intersects[0].object.obj.allowDrag) return;
+
                     CG.trackball.enabled = false;
-                    //クリックされたオブジェクトを「SELECTED」に登録
+
                     SELECTED = intersects[0].object;
 
-                    //マウスダウンイベントの実行
-                    this.mouseDownEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
+                    //call select event 
+                    this.mouseDownEvent(SELECTED.obj);
 
-                    //光線と交わる平面オブジェクトオブジェクトを収集
                     var intersects = raycaster.intersectObject(plane);
-                    //クリック時のマウスポインタの指した平面オブジェクトの３次元空間中の位置座標
                     var vec3 = intersects[0].point;
-                    //平面オブジェクトの中心から見た相対的な位置座標
                     offset.copy(vec3).sub(plane.position);
-                    //マウスポインタのカーソルを変更
+
                     CG.canvasFrame.style.cursor = 'move';
                 }
             }, false);
             CG.canvasFrame.addEventListener('mouseup', (event) => {
 
-                //トラックボールを有効化
                 CG.trackball.enabled = this.trackball.enabled;
-
-                //マウスポインタのカーソルを変更
                 CG.canvasFrame.style.cursor = 'auto';
 
-                //マウスドラックが許可されていない場合は処理を終了
                 if (!allowDrag) return;
 
-                //マウスアップ時にマウスポインタがオブジェクト上にある場合
                 if (INTERSECTED && SELECTED) {
 
-                    //平面オブジェクトの位置座標をオブジェクトの位置座標に合わせる
                     plane.position.copy(INTERSECTED.position);
 
-                    //内部パラメータのリセット
-                    if (SELECTED.physObject.dynamic) SELECTED.physObject.resetParameter();
+                    //update new "r" for parameter
+                    SELECTED.obj.param.c_physics.r = SELECTED.obj.c_physics.r;
+                    if (SELECTED.obj.c_physics.dynamic) SELECTED.obj.resetParameter();
 
-                    //マウスアップイベントの実行
-                    this.mouseUpEvent(SELECTED.physObject);//<------------------------------------------------------------イベント実行
 
-                    //画面キャプチャの生成フラグ
+                    this.mouseUpEvent(SELECTED.obj);
                     makePictureFlag = true;
-
-                    //マウスドラックの解除
                     SELECTED = null;
-
                 }
 
             }, false);
-
-            //マウスクリック時のバウンディングボックスオブジェクト中心からの相対座標
-            var offset = new THREE.Vector3();
-            var INTERSECTED;  //マウスポインタが指しているオブジェクト 
-            var SELECTED;     //マウスドラック中のオブジェクト
-
-            //HTML要素の位置による補正量の取得
-            var elementOffsetLeft, elementOffsetTop;
-
         }
 
         mouseDownEvent(physObject) {
