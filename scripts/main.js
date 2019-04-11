@@ -1222,40 +1222,63 @@ var EPSE;
                 document.getElementById(EPSE.frameID).appendChild(this.stats.domElement);
             }
             if (EPSE.playButtonID) {
-                document.getElementById(EPSE.playButtonID).innerHTML = "start";
-                document.getElementById(EPSE.playButtonID).addEventListener('mousedown', function () {
+                $("#" + EPSE.playButtonID).button({
+                    text: false,
+                    label: "start",
+                    icons: {
+                        primary: "ui-icon-play"
+                    }
+                }).click(function () {
                     EPSE.initFlag = false;
                     EPSE.pauseFlag = !EPSE.pauseFlag;
-                    //change button text
                     _this.switchButton();
-                }, false);
+                });
             }
             else {
                 EPSE.initFlag = false;
                 EPSE.pauseFlag = false;
             }
             if (EPSE.resetButtonID) {
-                document.getElementById(EPSE.resetButtonID).innerHTML = "initial condition";
-                document.getElementById(EPSE.resetButtonID).addEventListener('mousedown', function () {
+                $("#" + EPSE.resetButtonID).button({
+                    text: false,
+                    label: "reset",
+                    icons: {
+                        primary: "ui-icon-stop"
+                    }
+                }).click(function () {
                     EPSE.resetFlag = true;
                     EPSE.pauseFlag = true;
                     _this.switchButton();
-                }, false);
+                });
             }
             if (EPSE.pictureID) {
-                document.getElementById(EPSE.pictureID).innerHTML = "capture";
+                $("#" + EPSE.pictureID).button({
+                    label: "capture",
+                    text: false,
+                    icons: {
+                        primary: "ui-icon-image"
+                    }
+                }).click(function () {
+                    EPSE.makePictureFlag = true;
+                });
             }
         };
         EEventListenerSystem.prototype.switchButton = function () {
             if (EPSE.pauseFlag) {
                 var label = (EPSE.resetFlag) ? "start" : "restart";
-                document.getElementById(EPSE.playButtonID).innerHTML = label;
-                document.getElementById(EPSE.pictureID).style.visibility = "visible";
+                $("#" + EPSE.playButtonID).button("option", {
+                    label: label,
+                    icons: { primary: "ui-icon-play" }
+                });
+                $("#" + EPSE.pictureID).css('visibility', 'visible');
             }
             else {
                 var label = "pause";
-                document.getElementById(EPSE.playButtonID).innerHTML = label;
-                document.getElementById(EPSE.pictureID).style.visibility = "hidden";
+                $("#" + EPSE.playButtonID).button("option", {
+                    label: label,
+                    icons: { primary: "ui-icon-pause" }
+                });
+                $("#" + EPSE.pictureID).css('visibility', 'hidden');
             }
             EPSE.makePictureFlag = true;
         };

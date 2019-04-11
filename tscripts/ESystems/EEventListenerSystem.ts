@@ -9,10 +9,11 @@
 module EPSE {
 
     declare let Stats: any;
+    declare let $: any;
 
     export class EEventListenerSystem extends ECS.System {
 
-        stats:any;
+        stats: any;
         constructor() {
             super("event_listener");
         }
@@ -27,15 +28,17 @@ module EPSE {
             }
 
             if (playButtonID) {
-
-                document.getElementById(playButtonID).innerHTML = "start";
-                document.getElementById(playButtonID).addEventListener('mousedown', () => {
+                $("#" + playButtonID).button({
+                    text: false,
+                    label: "start",
+                    icons: {
+                        primary: "ui-icon-play"
+                    }
+                }).click(() => {
                     initFlag = false;
                     pauseFlag = !pauseFlag;
-                    
-                    //change button text
                     this.switchButton();
-                }, false);
+                });
 
             } else {
 
@@ -45,21 +48,34 @@ module EPSE {
             }
 
             if (resetButtonID) {
-                document.getElementById(resetButtonID).innerHTML = "initial condition";
+                $("#" + resetButtonID).button({
+                    text: false,
+                    label: "reset",
+                    icons: {
+                        primary: "ui-icon-stop"
+                    }
 
-                document.getElementById(resetButtonID).addEventListener('mousedown',() => {
-
+                }).click(() => {
                     resetFlag = true;
                     pauseFlag = true;
                     this.switchButton();
-
-                }, false);
-
+                });
             }
 
             if (pictureID) {
 
-                document.getElementById(pictureID).innerHTML = "capture";
+                $("#" + pictureID).button({
+                    label: "capture",
+                    text: false,
+                    icons: {
+                        primary: "ui-icon-image"
+                    }
+
+                }).click(() => {
+
+                    makePictureFlag = true;
+
+                });
 
             }
 
@@ -71,15 +87,27 @@ module EPSE {
 
                 let label = (resetFlag) ? "start" : "restart";
 
-                document.getElementById(playButtonID).innerHTML = label;
-                document.getElementById(pictureID).style.visibility = "visible";
+                $("#" + playButtonID).button(
+                    "option", {
+                        label: label,
+                        icons: { primary: "ui-icon-play" }
+                    }
+                );
+
+                $("#" + pictureID).css('visibility', 'visible');
 
             } else {
 
                 let label = "pause";
 
-                document.getElementById(playButtonID).innerHTML = label;
-                document.getElementById(pictureID).style.visibility = "hidden";
+                $("#" + playButtonID).button(
+                    "option", {
+                        label: label,
+                        icons: { primary: "ui-icon-pause" }
+                    }
+                );
+
+                $("#" + pictureID).css('visibility', 'hidden');
 
             }
 

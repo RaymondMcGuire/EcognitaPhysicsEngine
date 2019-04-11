@@ -7,23 +7,40 @@
     <meta name="author" content="RaymondMcGuire">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="./image/encognita.ico">
-
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
     <title>Ecognita Physice Simulation Engine</title>
     <style>
         #Cvs_EPSE {
             width: 800px;
             height: 800px;
         }
+
+        #toolbar {
+            width: 290px;
+            text-align: center;
+            margin: 10px 0px 0px 0px;
+            padding: 5px 0px;
+        }
+
+        #play {
+            width: 180px;
+        }
     </style>
 </head>
 
 <body>
     <div id="Cvs_EPSE"></div>
-    <button id="play"></button>
-    <button id="reset"></button>
-    <a href="" id="picture"></a>
+
+    <div id="toolbar" class="ui-widget-header ui-corner-all">
+        <button id="play" style="width:180px"></button>
+        <button id="reset"></button>
+        <a href="#" id="picture" target="_blank"></a>
+    </div>
+
     <!-- extra library -->
     <script src="./scripts/extlib/jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
     <script src="./scripts/extlib/stats.min.js" type="text/javascript"></script>
     <script src="./scripts/extlib/three.js/three.min.js" type="text/javascript"></script>
     <script src="./scripts/extlib/three.js/control/TrackballControls.js" type="text/javascript"></script>
